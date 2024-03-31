@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package ru.maxigram.backend.grpccommons;
+
+import "google/protobuf/timestamp.proto";
+
+message Chat {
+  int64 id = 1;
+  string first_participant_id = 2;
+  string second_participant_id = 3;
+  bool anonymous = 4;
+  bool first_participant_agrees_to_deanonymization = 5;
+  bool second_participant_agrees_to_deanonymization = 6;
+  bool is_closed = 7;
+  string participant_closed_chat_id = 8;
+  int64 new_chat_id = 9;
+  google.protobuf.Timestamp creation_timestamp = 10;
+}
+
+message Message {
+  int64 id = 1;
+  int64 chat_id = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  string sender_id = 4;
+  string text = 5;
+  bool read = 6;
+}
+
+message SendMessageRequest {
+  string sender_id = 1;
+  string receiver_id = 2;
+  string text = 3;
+}
+
+message SendAnonymousMessageRequest {
+  string sender_id = 1;
+  int64 chat_id = 2;
+  string text = 3;
+}
+
+message AgreeToDeanonymizationRequest {
+  int64 chat_id = 1;
+  string sender_id = 2;
+}
+
+message AgreeToDeanonymizationResponse {
+  int64 new_chat_id = 1;
+}
+
+message CloseChatRequest {
+  int64 chat_id = 1;
+  string participant_id = 2;
+}
+
+message ApplyAnonymousChatRequest {
+  string user_id = 1;
+}
+
+message ApplyAnonymousChatResponse {}
+
+message GetChatsRequest {
+  string user_id = 1;
+}
+
+message GetChatsResponseElement {
+  int64 chat_id = 1;
+  string last_message = 2;
+  google.protobuf.Timestamp last_message_timestamp = 3;
+  bool last_message_read = 4;
+  string other_participant_id = 5;
+}
+
+message GetChatsResponse {
+  repeated GetChatsResponseElement chat_cards = 1;
+}
+
+message GetMessagesFromChatRequest {
+  string user_id = 1;
+  int64 chat_id = 2;
+}
+
+message GetMessagesFromChatResponse {
+  repeated Message messages = 1;
+}
+
+service ChatService {
+  rpc sendMessage(SendMessageRequest) returns (Message);
+  rpc sendAnonymousMessage(SendAnonymousMessageRequest) returns (Message);
+  rpc agreeToDeanonymization(AgreeToDeanonymizationRequest) returns (AgreeToDeanonymizationResponse);
+  rpc closeChat(CloseChatRequest) returns (Chat);
+  rpc applyAnonymousChat(ApplyAnonymousChatRequest) returns (ApplyAnonymousChatResponse);
+  rpc getChats(GetChatsRequest) returns (GetChatsResponse);
+  rpc getMessagesFromChat(GetMessagesFromChatRequest) returns (GetMessagesFromChatResponse);
+}

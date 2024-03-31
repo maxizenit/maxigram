@@ -36,3 +36,5 @@ out/
 .vscode/
 
 .DS_Store
+
+jmix-studio.xml

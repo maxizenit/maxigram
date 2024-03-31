@@ -1,0 +1,19 @@
+server:
+  port: 8088
+
+spring:
+  application:
+    name: feed-service
+  rabbitmq:
+    host: localhost
+    username: rabbitmq
+    password: rabbitmq
+  jpa:
+    database: postgresql
+    hibernate:
+      ddl-auto: none
+  datasource:
+    url: http://localhost:5432/feed_service_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver

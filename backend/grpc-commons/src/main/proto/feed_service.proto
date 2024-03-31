@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package ru.maxigram.backend.grpccommons;
+
+import "google/protobuf/timestamp.proto";
+
+message Post {
+  int64 id = 1;
+  string author_id = 2;
+  string text = 3;
+  google.protobuf.Timestamp timestamp = 4;
+}
+
+message Comment {
+  int64 id = 1;
+  string author_id = 2;
+  string text = 3;
+  google.protobuf.Timestamp timestamp = 4;
+  int64 post_id = 5;
+}
+
+message Like {
+  int64 id = 1;
+  string author_id = 2;
+  int64 post_id = 3;
+  int64 comment_id = 4;
+}
+
+message CreatePostRequest {
+  string author_id = 1;
+  string text = 2;
+}
+
+message CreateCommentRequest {
+  string author_id = 1;
+  string text = 2;
+  int64 post_id = 3;
+}
+
+message LikePostRequest {
+  int64 post_id = 1;
+  string author_id = 2;
+}
+
+message LikeCommentRequest {
+  int64 comment_id = 1;
+  string author_id = 2;
+}
+
+message FindPostsByAuthorIdsRequest {
+  repeated string author_ids = 1;
+}
+
+message FindPostsByAuthorIdsResponse {
+  repeated Post posts = 1;
+}
+
+message FindCommentsByPostIdRequest {
+  int64 post_id = 1;
+}
+
+message FindCommentsByPostIdResponse {
+  repeated Comment comments = 1;
+}
+
+message CheckPostIsLikedByUserRequest {
+  int64 post_id = 1;
+  string user_id = 2;
+}
+
+message CheckPostIsLikedByUserResponse {
+  bool is_liked = 1;
+}
+
+message CheckCommentIsLikedByUserRequest {
+  int64 comment_id = 1;
+  string user_id = 2;
+}
+
+message CheckCommentIsLikedByUserResponse {
+  bool is_liked = 1;
+}
+
+message GetPostLikesCountRequest {
+  int64 post_id = 1;
+}
+
+message GetPostLikesCountResponse {
+  int32 likes_count = 1;
+}
+
+message GetCommentLikesCountRequest {
+  int64 comment_id = 1;
+}
+
+message GetCommentLikesCountResponse {
+  int64 likes_count = 1;
+}
+
+service FeedService {
+  rpc createPost(CreatePostRequest) returns (Post);
+  rpc createComment(CreateCommentRequest) returns (Comment);
+  rpc likePost(LikePostRequest) returns (Like);
+  rpc likeComment(LikeCommentRequest) returns (Like);
+  rpc findPostsByAuthorId(FindPostsByAuthorIdsRequest) returns (FindPostsByAuthorIdsResponse);
+  rpc findCommentsByPostId(FindCommentsByPostIdRequest) returns (FindCommentsByPostIdResponse);
+  rpc checkPostIsLikedByUser(CheckPostIsLikedByUserRequest) returns (CheckPostIsLikedByUserResponse);
+  rpc checkCommentIsLikedByUser(CheckCommentIsLikedByUserRequest) returns (CheckCommentIsLikedByUserResponse);
+  rpc getPostLikesCount(GetPostLikesCountRequest) returns (GetPostLikesCountResponse);
+  rpc getCommentLikesCount(GetCommentLikesCountRequest) returns (GetCommentLikesCountResponse);
+}
