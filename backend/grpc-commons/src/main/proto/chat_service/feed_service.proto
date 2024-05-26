@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package ru.maxigram.backend.grpccommons;
+
+import "google/protobuf/timestamp.proto";
+
+message Post {
+  int64 id = 1;
+  string author_id = 2;
+  string text = 3;
+  google.protobuf.Timestamp timestamp = 4;
+  int64 likes_count = 5;
+  int64 comments_count = 6;
+  bool is_liked_by_requester = 7;
+}
+
+message Comment {
+  int64 id = 1;
+  int64 post_id = 2;
+  string author_id = 3;
+  string text = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  int64 likes_count = 6;
+  bool is_liked_by_requester = 7;
+}
+
+message GetFeedRequest {
+  string requester_id = 1;
+  repeated string authors_ids = 2;
+}
+
+message GetFeedResponse {
+  repeated Post posts = 1;
+}
+
+message CreatePostRequest {
+  string author_id = 1;
+  string text = 2;
+}
+
+message GetPostByIdRequest {
+  int64 post_id = 1;
+  string requester_id = 2;
+}
+
+message LikePostRequest {
+  int64 post_id = 1;
+  string requester_id = 2;
+}
+
+message UnlikePostRequest {
+  int64 post_id = 1;
+  string requester_id = 2;
+}
+
+message GetCommentsForPostRequest {
+  int64 post_id = 1;
+  string requester_id = 2;
+}
+
+message GetCommentsForPostResponse {
+  repeated Comment comments = 1;
+}
+
+message AddCommentRequest {
+  int64 post_id = 1;
+  string author_id = 2;
+  string text = 3;
+}
+
+message LikeCommentRequest {
+  int64 comment_id = 1;
+  string requester_id = 2;
+}
+
+message UnlikeCommentRequest {
+  int64 comment_id = 1;
+  string requester_id = 2;
+}
+
+service FeedService {
+  rpc getFeed(GetFeedRequest) returns (GetFeedResponse);
+  rpc createPost(CreatePostRequest) returns (Post);
+  rpc getPostById(GetPostByIdRequest) returns (Post);
+  rpc likePost(LikePostRequest) returns (Post);
+  rpc unlikePost(UnlikePostRequest) returns (Post);
+  rpc getCommentsForPost(GetCommentsForPostRequest) returns (GetCommentsForPostResponse);
+  rpc addComment(AddCommentRequest) returns (Comment);
+  rpc likeComment(LikeCommentRequest) returns (Comment);
+  rpc unlikeComment(UnlikeCommentRequest) returns (Comment);
+}

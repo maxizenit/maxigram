@@ -1,0 +1,16 @@
+plugins {
+    id 'java'
+}
+
+group = 'ru.maxizenit.backend'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':backend:maxigram-commons')
+
+    implementation 'org.springframework.boot:spring-boot-starter-web:3.3.0'
+}

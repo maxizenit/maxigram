@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://profileView.title">
+    <layout>
+        <vbox>
+            <textField id="firstNameField" required="true" label="Имя"/>
+            <textField id="lastNameField" required="true" label="Фамилия"/>
+            <datePicker id="birthDateField" required="true" label="Дата рождения"/>
+            <multiSelectComboBox id="interestsCombo" label="Интересы"/>
+            <button id="saveButton" text="Сохранить профиль"/>
+        </vbox>
+    </layout>
+</view>

@@ -1,0 +1,207 @@
+services:
+  nginx:
+    image: nginx:1
+    ports:
+      - '80:80'
+      - '443:443'
+    restart: always
+    volumes:
+      - './docker/nginx.conf:/etc/nginx/nginx.conf'
+      - './docker/cert/maxigram.crt:/etc/ssl/maxigram.crt'
+      - './docker/cert/maxigram.key:/etc/ssl/maxigram.key'
+      - './docker/cert/ca.crt:/etc/ssl/ca.crt'
+    depends_on:
+      - jmix-client
+
+  postgres:
+    image: postgres:16
+    ports:
+      - '8081:5432'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    restart: always
+    volumes:
+      - './docker/initdb.sql:/docker-entrypoint-initdb.d/initdb.sql'
+    environment:
+      - 'POSTGRES_USER=${POSTGRES_USER}'
+      - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
+
+  rabbitmq:
+    image: rabbitmq:3
+    ports:
+      - '8082:5672'
+    healthcheck:
+      test: [ "CMD-SHELL", "rabbitmq-diagnostics -q ping" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    restart: always
+    environment:
+      - 'RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}'
+      - 'RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}'
+
+  keycloak:
+    image: bitnami/keycloak:24
+    ports:
+      - '8083:8080'
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --head -fsS http://localhost:8080/keycloak/health" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    restart: always
+    volumes:
+      - './docker/realm-export.json:/opt/bitnami/keycloak/data/import/realm-export.json'
+    environment:
+      - 'KEYCLOAK_DATABASE_HOST=postgres'
+      - 'KEYCLOAK_DATABASE_USER=${POSTGRES_USER}'
+      - 'KEYCLOAK_DATABASE_PASSWORD=${POSTGRES_PASSWORD}'
+      - 'KEYCLOAK_DATABASE_NAME=keycloak_db'
+      - 'KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}'
+      - 'KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}'
+      - 'KEYCLOAK_HTTP_RELATIVE_PATH=keycloak'
+      - 'KEYCLOAK_FRONTEND_URL=${KEYCLOAK_FRONTEND_URL}'
+      - 'KEYCLOAK_EXTRA_ARGS=--import-realm'
+      - 'KEYCLOAK_PROXY=edge'
+      - 'KEYCLOAK_PRODUCTION=true'
+      - 'PROXY_ADDRESS_FORWARDING=true'
+      - 'KEYCLOAK_ENABLE_HEALTH_ENDPOINTS=true'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  jmix-client:
+    build: frontend/jmix-client
+    ports:
+      - '8084:8084'
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --fail --silent localhost:8084/actuator/health | grep UP || exit 1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    environment:
+      - 'API-SERVICE_URL=http://api-service:8085'
+      - 'SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT-ID=${KEYCLOAK_JMIX_CLIENT_ID}'
+      - 'SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT-SECRET=${KEYCLOAK_JMIX_CLIENT_SECRET}'
+      - 'SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER-URI=${KEYCLOAK_ISSUER_URI}'
+      - 'SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI=${KEYCLOAK_ISSUER_URI}'
+      - 'SPRING_RABBITMQ_HOST=rabbitmq'
+      - 'SPRING_RABBITMQ_USERNAME=${RABBITMQ_DEFAULT_USER}'
+      - 'SPRING_RABBITMQ_PASSWORD=${RABBITMQ_DEFAULT_PASS}'
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      api-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    extra_hosts:
+      - 'maxigram.ru:172.17.0.1' #для локального запуска
+
+  api-service:
+    build: backend/api-service
+    ports:
+      - '8085:8085'
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --fail --silent localhost:8085/actuator/health | grep UP || exit 1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    restart: always
+    environment:
+      - 'GRPC_CLIENT_USER-SERVICE_ADDRESS=static://user-service:9090'
+      - 'GRPC_CLIENT_CHAT-SERVICE_ADDRESS=static://chat-service:9090'
+      - 'GRPC_CLIENT_FEED-SERVICE_ADDRESS=static://feed-service:9090'
+      - 'SPRING_RABBITMQ_HOST=rabbitmq'#временно (необходимо убрать RabbitMQ-классы из maxigram-commons)
+      - 'SPRING_RABBITMQ_USERNAME=${RABBITMQ_DEFAULT_USER}'#временно (необходимо убрать RabbitMQ-классы из maxigram-commons)
+      - 'SPRING_RABBITMQ_PASSWORD=${RABBITMQ_DEFAULT_PASS}'#временно (необходимо убрать RabbitMQ-классы из maxigram-commons)
+    depends_on:
+      user-service:
+        condition: service_healthy
+      chat-service:
+        condition: service_healthy
+      feed-service:
+        condition: service_healthy
+
+  user-service:
+    build: backend/user-service
+    ports:
+      - '8086:8086'
+      - '9086:9090'
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --fail --silent localhost:8086/actuator/health | grep UP || exit 1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    restart: always
+    environment:
+      - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/user_service_db'
+      - 'SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}'
+      - 'SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}'
+      - 'SPRING_RABBITMQ_HOST=rabbitmq'
+      - 'SPRING_RABBITMQ_USERNAME=${RABBITMQ_DEFAULT_USER}'
+      - 'SPRING_RABBITMQ_PASSWORD=${RABBITMQ_DEFAULT_PASS}'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  chat-service:
+    build: backend/chat-service
+    ports:
+      - '8087:8087'
+      - '9087:9090'
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --fail --silent localhost:8087/actuator/health | grep UP || exit 1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    restart: always
+    environment:
+      - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/chat_service_db'
+      - 'SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}'
+      - 'SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}'
+      - 'SPRING_RABBITMQ_HOST=rabbitmq'
+      - 'SPRING_RABBITMQ_USERNAME=${RABBITMQ_DEFAULT_USER}'
+      - 'SPRING_RABBITMQ_PASSWORD=${RABBITMQ_DEFAULT_PASS}'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  feed-service:
+    build: backend/feed-service
+    ports:
+      - '8088:8088'
+      - '9088:9090'
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --fail --silent localhost:8088/actuator/health | grep UP || exit 1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    restart: always
+    environment:
+      - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/feed_service_db'
+      - 'SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}'
+      - 'SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}'
+      - 'SPRING_RABBITMQ_HOST=rabbitmq'
+      - 'SPRING_RABBITMQ_USERNAME=${RABBITMQ_DEFAULT_USER}'
+      - 'SPRING_RABBITMQ_PASSWORD=${RABBITMQ_DEFAULT_PASS}'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy

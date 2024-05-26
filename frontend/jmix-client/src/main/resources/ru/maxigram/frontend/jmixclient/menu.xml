@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<menu-config xmlns="http://jmix.io/schema/flowui/menu">
+    <item view="ProfileView" title="msg://ru.maxigram.frontend.jmixclient.view.profile/profileView.title"/>
+    <item view="ChatsView" title="msg://ru.maxigram.frontend.jmixclient.view.chats/chatsView.title"/>
+    <item view="UsersView" title="msg://ru.maxigram.frontend.jmixclient.view.profile/usersView.title"/>
+</menu-config>

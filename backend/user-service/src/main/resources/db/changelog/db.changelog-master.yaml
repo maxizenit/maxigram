@@ -1,0 +1,136 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: Liquibase
+      changes:
+        - createTable:
+            tableName: user_profile
+            columns:
+              - column:
+                  name: id
+                  type: varchar
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: first_name
+                  type: varchar
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_name
+                  type: varchar
+                  constraints:
+                    nullable: false
+              - column:
+                  name: birthdate
+                  type: date
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: interest
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: user_interest
+            columns:
+              - column:
+                  name: user_id
+                  type: varchar
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_profile
+                    references: user_profile(id)
+              - column:
+                  name: interest_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_interest
+                    references: interest(id)
+
+        - addPrimaryKey:
+            tableName: user_interest
+            columnNames: user_id, interest_id
+
+        - createTable:
+            tableName: subscription
+            columns:
+              - column:
+                  name: subscriber_id
+                  type: varchar
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_profile_1
+                    references: user_profile(id)
+              - column:
+                  name: author_id
+                  type: varchar
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_profile_2
+                    references: user_profile(id)
+
+        - addPrimaryKey:
+            tableName: subscription
+            columnNames: subscriber_id, author_id
+
+        - createTable:
+            tableName: self_restraint
+            columns:
+              - column:
+                  name: user_id
+                  type: varchar
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    foreignKeyName: fk_user_profile
+                    references: user_profile(id)
+
+        - insert:
+            tableName: interest
+            columns:
+              - column:
+                  name: name
+                  value: "Футбол"
+
+        - insert:
+            tableName: interest
+            columns:
+              - column:
+                  name: name
+                  value: "Программирование"
+
+        - insert:
+            tableName: interest
+            columns:
+              - column:
+                  name: name
+                  value: "Музыка"
+
+        - insert:
+            tableName: interest
+            columns:
+              - column:
+                  name: name
+                  value: "Литература"
+
+        - insert:
+            tableName: interest
+            columns:
+              - column:
+                  name: name
+                  value: "Путешествия"
