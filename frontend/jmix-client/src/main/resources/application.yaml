@@ -1,0 +1,41 @@
+server:
+  port: 8084
+
+jmix:
+  ui:
+    login-view-id: LoginView
+    main-view-id: MainView
+    menu-config: ru/maxigram/frontend/jmixclient/menu.xml
+    composite-menu: false
+  core:
+    available-locales: ru
+
+vaadin:
+  launch-browser: false
+  pnpm:
+    enable: true
+
+spring:
+  rabbitmq:
+    host: localhost
+    username: rabbitmq
+    password: rabbitmq
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: jmix-client
+            client-secret: 123456
+            scope: openid, profile, email
+        provider:
+          keycloak:
+            issuer-uri: http://maxigram.ru/keycloak/realms/maxigram
+      resourceserver:
+        jwt:
+          issuer-uri: http://maxigram.ru/keycloak/realms/maxigram
+  liquibase:
+    enabled: false
+
+api-service:
+  url: http://localhost:8085

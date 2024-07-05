@@ -1,1 +1,13 @@
 rootProject.name = 'maxigram'
+
+include ':backend:maxigram-commons'
+include ':backend:grpc-commons'
+
+include ':backend:api-service'
+include ':backend:api-service-http-client'
+
+include ':backend:user-service'
+include ':backend:chat-service'
+include ':backend:feed-service'
+
+include ':frontend:jmix-client'

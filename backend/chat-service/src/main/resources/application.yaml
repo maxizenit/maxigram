@@ -1,0 +1,21 @@
+server:
+  port: 8087
+
+spring:
+  application:
+    name: chat-service
+  rabbitmq:
+    host: localhost
+    username: rabbitmq
+    password: rabbitmq
+  jpa:
+    database: postgresql
+    hibernate:
+      ddl-auto: none
+  datasource:
+    url: http://localhost:5432/chat_service_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+minimal-similarity-for-anonymous-chat: 0.25

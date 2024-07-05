@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package ru.maxigram.backend.grpccommons;
+
+message User {
+  string id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  google.protobuf.Timestamp birthdateTimestamp = 4;
+  repeated Interest interests = 5;
+}
+
+message Subscription {
+  string subscriber_id = 1;
+  string author_id = 2;
+}
+
+message SelfRestraint {
+  string user_id = 1;
+  google.protobuf.Timestamp start_time = 2;
+  google.protobuf.Timestamp end_time = 3;
+  bool nonNull = 4;
+}
+
+message Interest {
+  int64 id = 1;
+  string name = 2;
+}
+
+message GetUserByIdRequest {
+  string user_id = 1;
+}
+
+message CreateOrUpdateUserRequest {
+  string id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  google.protobuf.Timestamp birthdateTimestamp = 4;
+  repeated int64 interests_ids = 5;
+}
+
+message GetAllUsersRequest {}
+
+message GetAllUsersResponse {
+  repeated User users = 1;
+}
+
+message GetSubscriptionsByUserIdRequest {
+  string user_id = 1;
+}
+
+message GetSubscriptionByUserIdResponse {
+  repeated Subscription subscriptions = 1;
+}
+
+message SubscribeOnUserByIdRequest {
+  string user_id = 1;
+  string subscriber_id = 2;
+}
+
+message GetSelfRestraintRequest {
+  string user_id = 1;
+}
+
+message AddSelfRestraintRequest {
+  string user_id = 1;
+  google.protobuf.Timestamp start_time = 2;
+  google.protobuf.Timestamp end_time = 3;
+}
+
+message GetAllInterestsRequest {}
+
+message GetAllInterestsResponse {
+  repeated Interest interests = 1;
+}
+
+service UserService {
+  rpc getUserById(GetUserByIdRequest) returns (User);
+  rpc createUser(CreateOrUpdateUserRequest) returns (User);
+  rpc updateUser(CreateOrUpdateUserRequest) returns (User);
+  rpc getAllUsers(GetAllUsersRequest) returns (GetAllUsersResponse);
+  rpc getSubscriptionsByUserId(GetSubscriptionsByUserIdRequest) returns (GetSubscriptionByUserIdResponse);
+  rpc subscribeOnUserById(SubscribeOnUserByIdRequest) returns (Subscription);
+  rpc getSelfRestraint(GetSelfRestraintRequest) returns (SelfRestraint);
+  rpc addSelfRestraint(AddSelfRestraintRequest) returns (SelfRestraint);
+  rpc getAllInterests(GetAllInterestsRequest) returns (GetAllInterestsResponse);
+}

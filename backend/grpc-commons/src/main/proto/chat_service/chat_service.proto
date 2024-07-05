@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package ru.maxigram.backend.grpccommons;
+
+import "google/protobuf/timestamp.proto";
+
+message Chat {
+  int64 id = 1;
+  string first_participant_id = 2;
+  string second_participant_id = 3;
+  bool anonymous = 4;
+  bool first_participant_agree_to_de_anonymization = 5;
+  bool second_participant_agree_to_de_anonymization = 6;
+  bool is_closed = 7;
+  int64 new_chat_id = 8;
+  string last_message = 9;
+}
+
+message Message {
+  int64 id = 1;
+  int64 chat_id = 2;
+  string sender_id = 3;
+  string text = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  bool read = 6;
+}
+
+message GetAllChatsByUserIdRequest {
+  string user_id = 1;
+}
+
+message GetAllChatsByUserIdResponse {
+  repeated Chat chats = 1;
+}
+
+message GetChatByIdRequest {
+  int64 chat_id = 1;
+  string requester_id = 2;
+}
+
+message GetMessagesByChatIdRequest {
+  int64 chat_id = 1;
+  string requester_id = 2;
+}
+
+message GetMessagesByChatIdResponse {
+  repeated Message messages = 1;
+}
+
+message SendMessageInChatRequest {
+  int64 chat_id = 1;
+  string sender_id = 2;
+  string text = 3;
+}
+
+message CloseAnonymousChatRequest {
+  int64 chat_id = 1;
+  string requester_id = 2;
+}
+
+message AgreeToDeAnonymizationRequest {
+  int64 chat_id = 1;
+  string requester_id = 2;
+}
+
+message SendRequestForAnonymousChatRequest {
+  string requester_id = 1;
+}
+
+message Empty {}
+
+message SendMessageToUserRequest {
+  string sender_id = 1;
+  string receiver_id = 2;
+  string text = 3;
+}
+
+service ChatService {
+  rpc getAllChatsByUserId(GetAllChatsByUserIdRequest) returns (GetAllChatsByUserIdResponse);
+  rpc getChatById(GetChatByIdRequest) returns (Chat);
+  rpc getMessagesByChatId(GetMessagesByChatIdRequest) returns (GetMessagesByChatIdResponse);
+  rpc sendMessageInChat(SendMessageInChatRequest) returns (Message);
+  rpc closeAnonymousChat(CloseAnonymousChatRequest) returns (Chat);
+  rpc agreeToDeAnonymization(AgreeToDeAnonymizationRequest) returns (Chat);
+  rpc sendRequestForAnonymousChat(SendRequestForAnonymousChatRequest) returns (Empty);
+  rpc sendMessageToUser(SendMessageToUserRequest) returns (Message);
+}

@@ -1,0 +1,18 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: api-service
+
+grpc:
+  client:
+    user-service:
+      address: static://localhost:9086
+      negotiation-type: plaintext
+    chat-service:
+      address: static://localhost:9087
+      negotiation-type: plaintext
+    feed-service:
+      address: static://localhost:9088
+      negotiation-type: plaintext
