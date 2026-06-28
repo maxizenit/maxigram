@@ -37,7 +37,8 @@ class WebSecurityConfig {
     @Order(3)
     fun defaultSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http.authorizeHttpRequests { auth ->
-            auth.requestMatchers("/actuator/**").permitAll()
+            // /ws is the STOMP handshake; the session is authenticated at STOMP CONNECT via JWT.
+            auth.requestMatchers("/actuator/**", "/ws/**").permitAll()
             auth.anyRequest().authenticated()
         }
         http.formLogin(Customizer.withDefaults())
