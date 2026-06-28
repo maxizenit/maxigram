@@ -36,3 +36,7 @@ out/
 .vscode/
 
 .DS_Store
+
+### Secrets ###
+.env
+!.env.example
