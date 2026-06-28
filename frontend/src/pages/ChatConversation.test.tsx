@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { http, HttpResponse } from 'msw'
@@ -7,7 +7,13 @@ import { setupServer } from 'msw/node'
 import { ChatConversation } from './ChatConversation'
 import { setTokenProvider } from '../api/client'
 
-vi.mock('../realtime/RealtimeContext', () => ({ useStompSubscription: vi.fn() }))
+// Capture the subscription handler so a test can simulate an incoming STOMP frame.
+const realtime = vi.hoisted(() => ({ handler: null as null | ((message: unknown) => void) }))
+vi.mock('../realtime/RealtimeContext', () => ({
+  useStompSubscription: (_destination: string | null, handler: (message: unknown) => void) => {
+    realtime.handler = handler
+  },
+}))
 vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ user: { profile: { sub: 'me' } } }) }))
 
 const regularChat = {
@@ -90,5 +96,34 @@ describe('ChatConversation', () => {
     await user.click(await screen.findByText('Согласиться на деанонимизацию'))
 
     expect(await screen.findByText('Согласие подано')).toBeInTheDocument()
+  })
+
+  it('keeps an own message as "Вы" even when the masked broadcast echoes it first (anonymous race)', async () => {
+    server.use(
+      http.get('http://localhost:8080/api/chats/4', () =>
+        HttpResponse.json({ ...regularChat, id: 4, partnerId: null, anonymous: true }),
+      ),
+      http.get('http://localhost:8080/api/chats/4/messages', () => HttpResponse.json([])),
+      http.post('http://localhost:8080/api/chats/4/messages', () =>
+        HttpResponse.json({ id: 50, chatId: 4, senderId: 'me', text: 'моё сообщение', createdAt: '', read: false }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderAt('4')
+    await screen.findByText('Анонимный чат')
+
+    // Masked broadcast (senderId=null) lands first -> would show as "Собеседник".
+    act(() =>
+      realtime.handler?.({ id: 50, chatId: 4, senderId: null, text: 'моё сообщение', createdAt: '', read: false }),
+    )
+    expect(screen.getByText('Собеседник:')).toBeInTheDocument()
+
+    // Sending the same message reconciles it to our self-attributed copy.
+    await user.type(screen.getByLabelText('Сообщение'), 'моё сообщение')
+    await user.click(screen.getByText('Отправить'))
+
+    expect(await screen.findByText('Вы:')).toBeInTheDocument()
+    expect(screen.queryByText('Собеседник:')).not.toBeInTheDocument()
+    expect(screen.getAllByText('моё сообщение')).toHaveLength(1)
   })
 })

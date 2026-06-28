@@ -5,6 +5,10 @@ import type { Chat, Message } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { useStompSubscription } from '../realtime/RealtimeContext'
 
+function sortedById(messages: Message[]): Message[] {
+  return [...messages].sort((a, b) => a.id - b.id)
+}
+
 export function ChatConversation() {
   const { id } = useParams()
   const chatId = Number(id)
@@ -20,16 +24,19 @@ export function ChatConversation() {
     chatsApi.messages(chatId).then(setMessages).catch(() => undefined)
   }, [chatId])
 
-  // Live messages arrive on the chat topic (the sender's own echo is de-duplicated by id).
+  // The realtime broadcast masks the sender in anonymous chats (senderId=null for everyone).
+  // Only add a frame we don't already have — the POST response below is authoritative for our
+  // own messages and must win the race, so we never overwrite an existing message here.
   useStompSubscription<Message>(`/topic/chats/${chatId}`, (incoming) => {
-    setMessages((prev) => (prev.some((m) => m.id === incoming.id) ? prev : [...prev, incoming]))
+    setMessages((prev) => (prev.some((m) => m.id === incoming.id) ? prev : sortedById([...prev, incoming])))
   })
 
   async function send(event: FormEvent) {
     event.preventDefault()
     if (!text.trim()) return
     const sent = await chatsApi.send(chatId, text)
-    setMessages((prev) => (prev.some((m) => m.id === sent.id) ? prev : [...prev, sent]))
+    // Replace any masked echo of this same message with the self-attributed POST response.
+    setMessages((prev) => sortedById([...prev.filter((m) => m.id !== sent.id), sent]))
     setText('')
   }
 
