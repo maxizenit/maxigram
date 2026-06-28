@@ -4,6 +4,7 @@ import { AppLayout } from './components/AppLayout'
 import { LoginPage } from './pages/LoginPage'
 import { CallbackPage } from './pages/CallbackPage'
 import { FeedPage } from './pages/FeedPage'
+import { ProfilePage } from './pages/ProfilePage'
 
 export function App() {
   return (
@@ -18,6 +19,7 @@ export function App() {
         }
       >
         <Route path="/" element={<FeedPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Route>
     </Routes>
   )
