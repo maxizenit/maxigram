@@ -45,6 +45,7 @@ class AuthorizationServerConfig {
         http.with(authorizationServerConfigurer) { configurer ->
             configurer.oidc(Customizer.withDefaults())
         }
+        http.cors(Customizer.withDefaults())
         http.authorizeHttpRequests { it.anyRequest().authenticated() }
         http.csrf { it.ignoringRequestMatchers(endpointsMatcher) }
         http.exceptionHandling { exceptions ->

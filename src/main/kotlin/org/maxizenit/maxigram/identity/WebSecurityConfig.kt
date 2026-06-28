@@ -19,6 +19,7 @@ class WebSecurityConfig {
     @Order(2)
     fun apiSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http.securityMatcher("/api/**")
+        http.cors(Customizer.withDefaults())
         http.authorizeHttpRequests { auth ->
             auth.requestMatchers(HttpMethod.POST, "/api/identity/registrations").permitAll()
             auth.requestMatchers(HttpMethod.POST, "/api/identity/email-verifications/**").permitAll()
