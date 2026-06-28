@@ -3,7 +3,7 @@ package org.maxizenit.maxigram.identity.web
 import org.assertj.core.api.Assertions.assertThat
 import org.jooq.DSLContext
 import org.junit.jupiter.api.Test
-import org.maxizenit.jooq.Tables.APP_USER
+import org.maxizenit.maxigram.jooq.Tables.APP_USER
 import org.maxizenit.maxigram.support.AbstractIntegrationTest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc

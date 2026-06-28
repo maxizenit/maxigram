@@ -86,7 +86,7 @@ jooq {
                 }
             }
             target {
-                packageName = "org.maxizenit.jooq"
+                packageName = "org.maxizenit.maxigram.jooq"
                 directory = "build/generated/jooq"
             }
         }

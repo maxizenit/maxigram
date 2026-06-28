@@ -1,7 +1,7 @@
 package org.maxizenit.maxigram.identity
 
 import org.jooq.DSLContext
-import org.maxizenit.jooq.Tables.APP_USER
+import org.maxizenit.maxigram.jooq.Tables.APP_USER
 import org.springframework.stereotype.Repository
 import java.time.Instant
 import java.time.ZoneOffset
