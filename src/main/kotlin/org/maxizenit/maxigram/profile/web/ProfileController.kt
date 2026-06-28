@@ -17,6 +17,7 @@ data class ProfileRequest(
     val firstName: String,
     val lastName: String,
     val birthdate: LocalDate,
+    val timezone: String = "UTC",
     val interestIds: List<Long> = emptyList(),
 )
 
@@ -27,11 +28,12 @@ data class ProfileResponse(
     val firstName: String,
     val lastName: String,
     val birthdate: LocalDate,
+    val timezone: String,
     val interests: List<InterestResponse>,
 )
 
 private fun UserProfile.toResponse() =
-    ProfileResponse(id, firstName, lastName, birthdate, interests.map { InterestResponse(it.id, it.name) })
+    ProfileResponse(id, firstName, lastName, birthdate, timezone.id, interests.map { InterestResponse(it.id, it.name) })
 
 @RestController
 @RequestMapping("/api/profiles")
@@ -47,6 +49,7 @@ class ProfileController(
             request.firstName,
             request.lastName,
             request.birthdate,
+            request.timezone,
             request.interestIds,
         ).toResponse()
 

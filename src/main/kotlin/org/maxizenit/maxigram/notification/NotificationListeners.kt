@@ -3,6 +3,7 @@ package org.maxizenit.maxigram.notification
 import org.maxizenit.maxigram.chat.MessageSent
 import org.maxizenit.maxigram.feed.PostCommented
 import org.maxizenit.maxigram.feed.PostLiked
+import org.maxizenit.maxigram.matching.MatchFound
 import org.maxizenit.maxigram.profile.SubscriptionCreated
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
@@ -35,5 +36,12 @@ class NotificationListeners(private val notifications: NotificationService) {
         if (event.commenterId != event.authorId) {
             notifications.notify(event.authorId, NotificationType.POST_COMMENTED, event.commenterId, "Новый комментарий")
         }
+    }
+
+    @EventListener
+    fun onMatchFound(event: MatchFound) {
+        // Anonymous match: do not reveal the partner.
+        notifications.notify(event.firstUserId, NotificationType.MATCHED, null, "Вас подобрали в анонимный чат")
+        notifications.notify(event.secondUserId, NotificationType.MATCHED, null, "Вас подобрали в анонимный чат")
     }
 }

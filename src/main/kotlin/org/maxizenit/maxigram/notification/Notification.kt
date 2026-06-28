@@ -8,6 +8,7 @@ enum class NotificationType {
     NEW_SUBSCRIBER,
     POST_LIKED,
     POST_COMMENTED,
+    MATCHED,
 }
 
 data class Notification(

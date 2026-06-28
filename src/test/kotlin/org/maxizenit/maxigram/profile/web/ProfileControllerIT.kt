@@ -45,7 +45,7 @@ class ProfileControllerIT : AbstractIntegrationTest() {
                 .with(jwt().jwt { it.subject(userId.toString()) })
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
-                    """{"firstName":"$firstName","lastName":"Lee","birthdate":"2000-01-01","interestIds":[1,2]}""",
+                    """{"firstName":"$firstName","lastName":"Lee","birthdate":"2000-01-01","timezone":"Europe/Moscow","interestIds":[1,2]}""",
                 ),
         )
 
@@ -56,6 +56,7 @@ class ProfileControllerIT : AbstractIntegrationTest() {
         putProfile(userId, "Ann")
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.firstName", equalTo("Ann")))
+            .andExpect(jsonPath("$.timezone", equalTo("Europe/Moscow")))
             .andExpect(jsonPath("$.interests", hasSize<Any>(2)))
 
         mockMvc.perform(get("/api/profiles/me").with(jwt().jwt { it.subject(userId.toString()) }))
