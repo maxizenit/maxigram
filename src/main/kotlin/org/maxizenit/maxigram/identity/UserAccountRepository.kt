@@ -10,4 +10,6 @@ interface UserAccountRepository {
     fun insert(id: UUID, email: String, passwordHash: String, createdAt: Instant): AppUser
 
     fun findByEmail(email: String): AppUser?
+
+    fun findCredentialsByEmail(email: String): UserCredentials?
 }

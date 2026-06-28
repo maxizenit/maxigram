@@ -57,5 +57,7 @@ class UserAccountServiceTest {
         }
 
         override fun findByEmail(email: String): AppUser? = null
+
+        override fun findCredentialsByEmail(email: String): UserCredentials? = null
     }
 }

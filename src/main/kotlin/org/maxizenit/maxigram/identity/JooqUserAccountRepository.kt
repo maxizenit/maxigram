@@ -37,4 +37,18 @@ class JooqUserAccountRepository(private val dsl: DSLContext) : UserAccountReposi
             createdAt = record.get(APP_USER.CREATED_AT).toInstant(),
         )
     }
+
+    override fun findCredentialsByEmail(email: String): UserCredentials? {
+        val record =
+            dsl.select(APP_USER.ID, APP_USER.EMAIL, APP_USER.PASSWORD_HASH, APP_USER.EMAIL_VERIFIED)
+                .from(APP_USER)
+                .where(APP_USER.EMAIL.eq(email))
+                .fetchOne() ?: return null
+        return UserCredentials(
+            id = record.get(APP_USER.ID),
+            email = record.get(APP_USER.EMAIL),
+            passwordHash = record.get(APP_USER.PASSWORD_HASH),
+            emailVerified = record.get(APP_USER.EMAIL_VERIFIED),
+        )
+    }
 }
