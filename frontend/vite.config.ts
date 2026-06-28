@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig, configDefaults } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
@@ -9,5 +9,7 @@ export default defineConfig({
     globals: true,
     setupFiles: './src/test/setup.ts',
     css: false,
+    // e2e/ is driven by Playwright, not Vitest.
+    exclude: [...configDefaults.exclude, 'e2e/**'],
   },
 })
