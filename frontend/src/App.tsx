@@ -7,6 +7,8 @@ import { FeedPage } from './pages/FeedPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { ChatsPage } from './pages/ChatsPage'
 import { ChatConversation } from './pages/ChatConversation'
+import { NotificationsPage } from './pages/NotificationsPage'
+import { WellbeingPage } from './pages/WellbeingPage'
 
 export function App() {
   return (
@@ -23,6 +25,8 @@ export function App() {
         <Route path="/" element={<FeedPage />} />
         <Route path="/chats" element={<ChatsPage />} />
         <Route path="/chats/:id" element={<ChatConversation />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/wellbeing" element={<WellbeingPage />} />
         <Route path="/profile" element={<ProfilePage />} />
       </Route>
     </Routes>

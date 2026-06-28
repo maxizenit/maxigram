@@ -10,6 +10,8 @@ export function AppLayout() {
         <nav>
           <NavLink to="/">Лента</NavLink>
           <NavLink to="/chats">Чаты</NavLink>
+          <NavLink to="/notifications">Уведомления</NavLink>
+          <NavLink to="/wellbeing">Самоограничение</NavLink>
           <NavLink to="/profile">Профиль</NavLink>
         </nav>
         <button onClick={logout}>Выйти</button>
