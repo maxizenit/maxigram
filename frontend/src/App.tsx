@@ -5,6 +5,8 @@ import { LoginPage } from './pages/LoginPage'
 import { CallbackPage } from './pages/CallbackPage'
 import { FeedPage } from './pages/FeedPage'
 import { ProfilePage } from './pages/ProfilePage'
+import { ChatsPage } from './pages/ChatsPage'
+import { ChatConversation } from './pages/ChatConversation'
 
 export function App() {
   return (
@@ -19,6 +21,8 @@ export function App() {
         }
       >
         <Route path="/" element={<FeedPage />} />
+        <Route path="/chats" element={<ChatsPage />} />
+        <Route path="/chats/:id" element={<ChatConversation />} />
         <Route path="/profile" element={<ProfilePage />} />
       </Route>
     </Routes>

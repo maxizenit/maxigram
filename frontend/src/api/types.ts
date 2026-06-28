@@ -39,3 +39,40 @@ export interface Comment {
   likesCount: number
   likedByMe: boolean
 }
+
+export interface ChatSummary {
+  id: number
+  partnerId: string | null
+  anonymous: boolean
+  lastMessage: string | null
+  createdAt: string
+}
+
+export interface Chat {
+  id: number
+  partnerId: string | null
+  anonymous: boolean
+  iAgreed: boolean
+  partnerAgreed: boolean
+  closed: boolean
+  newChatId: number | null
+  createdAt: string
+}
+
+export interface Message {
+  id: number
+  chatId: number
+  senderId: string | null
+  text: string
+  createdAt: string
+  read: boolean
+}
+
+export interface Notification {
+  id: number
+  type: string
+  actorId: string | null
+  text: string
+  read: boolean
+  createdAt: string
+}
