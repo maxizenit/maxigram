@@ -51,4 +51,18 @@ class JooqUserAccountRepository(private val dsl: DSLContext) : UserAccountReposi
             emailVerified = record.get(APP_USER.EMAIL_VERIFIED),
         )
     }
+
+    override fun markEmailVerified(userId: UUID) {
+        dsl.update(APP_USER)
+            .set(APP_USER.EMAIL_VERIFIED, true)
+            .where(APP_USER.ID.eq(userId))
+            .execute()
+    }
+
+    override fun updatePasswordHash(userId: UUID, passwordHash: String) {
+        dsl.update(APP_USER)
+            .set(APP_USER.PASSWORD_HASH, passwordHash)
+            .where(APP_USER.ID.eq(userId))
+            .execute()
+    }
 }

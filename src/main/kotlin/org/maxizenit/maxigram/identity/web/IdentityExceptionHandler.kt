@@ -1,6 +1,7 @@
 package org.maxizenit.maxigram.identity.web
 
 import org.maxizenit.maxigram.identity.EmailAlreadyUsedException
+import org.maxizenit.maxigram.identity.InvalidTokenException
 import org.maxizenit.maxigram.identity.WeakPasswordException
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -18,5 +19,10 @@ class IdentityExceptionHandler {
     @ExceptionHandler(WeakPasswordException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun handleWeakPassword(e: WeakPasswordException): Map<String, String?> =
+        mapOf("error" to e.message)
+
+    @ExceptionHandler(InvalidTokenException::class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    fun handleInvalidToken(e: InvalidTokenException): Map<String, String?> =
         mapOf("error" to e.message)
 }

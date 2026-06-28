@@ -4,8 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
-import java.time.Instant
-import java.util.UUID
 
 class UserAccountServiceTest {
 
@@ -40,24 +38,5 @@ class UserAccountServiceTest {
             .isInstanceOf(WeakPasswordException::class.java)
 
         assertThat(repository.lastInsertedEmail).isNull()
-    }
-
-    private class InMemoryUserAccountRepository : UserAccountRepository {
-        private val emails = mutableSetOf<String>()
-        var lastInsertedEmail: String? = null
-        var lastInsertedHash: String? = null
-
-        override fun existsByEmail(email: String) = emails.contains(email)
-
-        override fun insert(id: UUID, email: String, passwordHash: String, createdAt: Instant): AppUser {
-            emails.add(email)
-            lastInsertedEmail = email
-            lastInsertedHash = passwordHash
-            return AppUser(id, email, emailVerified = false, createdAt = createdAt)
-        }
-
-        override fun findByEmail(email: String): AppUser? = null
-
-        override fun findCredentialsByEmail(email: String): UserCredentials? = null
     }
 }

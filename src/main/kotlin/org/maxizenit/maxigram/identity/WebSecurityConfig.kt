@@ -21,6 +21,9 @@ class WebSecurityConfig {
         http.securityMatcher("/api/**")
         http.authorizeHttpRequests { auth ->
             auth.requestMatchers(HttpMethod.POST, "/api/identity/registrations").permitAll()
+            auth.requestMatchers(HttpMethod.POST, "/api/identity/email-verifications/**").permitAll()
+            auth.requestMatchers(HttpMethod.POST, "/api/identity/password-resets", "/api/identity/password-resets/**")
+                .permitAll()
             auth.anyRequest().authenticated()
         }
         http.csrf { it.disable() }

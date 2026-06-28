@@ -12,4 +12,8 @@ interface UserAccountRepository {
     fun findByEmail(email: String): AppUser?
 
     fun findCredentialsByEmail(email: String): UserCredentials?
+
+    fun markEmailVerified(userId: UUID)
+
+    fun updatePasswordHash(userId: UUID, passwordHash: String)
 }

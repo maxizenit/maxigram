@@ -19,9 +19,7 @@ class UserAccountService(
      */
     fun register(email: String, rawPassword: String): AppUser {
         val normalizedEmail = email.trim().lowercase()
-        if (rawPassword.length < MIN_PASSWORD_LENGTH) {
-            throw WeakPasswordException("Password must be at least $MIN_PASSWORD_LENGTH characters")
-        }
+        PasswordPolicy.check(rawPassword)
         if (repository.existsByEmail(normalizedEmail)) {
             throw EmailAlreadyUsedException(normalizedEmail)
         }
@@ -29,9 +27,5 @@ class UserAccountService(
             "Password encoder returned null"
         }
         return repository.insert(UUID.randomUUID(), normalizedEmail, passwordHash, Instant.now(clock))
-    }
-
-    companion object {
-        const val MIN_PASSWORD_LENGTH = 8
     }
 }
