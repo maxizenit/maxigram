@@ -14,17 +14,42 @@ class FakeChatRepository : ChatRepository {
         return chat
     }
 
+    override fun insertAnonymous(firstParticipantId: UUID, secondParticipantId: UUID, createdAt: Instant): Chat {
+        val chat = Chat(++seq, firstParticipantId, secondParticipantId, createdAt, anonymous = true)
+        chats.add(chat)
+        return chat
+    }
+
     override fun findById(id: Long): Chat? = chats.firstOrNull { it.id == id }
 
-    override fun findBetween(a: UUID, b: UUID): Chat? =
+    override fun findRegularBetween(a: UUID, b: UUID): Chat? =
         chats.firstOrNull {
-            (it.firstParticipantId == a && it.secondParticipantId == b) ||
-                (it.firstParticipantId == b && it.secondParticipantId == a)
+            !it.anonymous &&
+                ((it.firstParticipantId == a && it.secondParticipantId == b) ||
+                    (it.firstParticipantId == b && it.secondParticipantId == a))
         }
 
     override fun chatViewsFor(userId: UUID): List<ChatView> =
         chats.filter { it.firstParticipantId == userId || it.secondParticipantId == userId }
-            .map { ChatView(it.id, it.firstParticipantId, it.secondParticipantId, it.createdAt, null) }
+            .map { ChatView(it.id, it.firstParticipantId, it.secondParticipantId, it.anonymous, it.createdAt, null) }
+
+    override fun updateAnonymousState(
+        chatId: Long,
+        firstAgreed: Boolean,
+        secondAgreed: Boolean,
+        closed: Boolean,
+        newChatId: Long?,
+    ) {
+        val index = chats.indexOfFirst { it.id == chatId }
+        if (index >= 0) {
+            chats[index] = chats[index].copy(
+                firstAgreed = firstAgreed,
+                secondAgreed = secondAgreed,
+                closed = closed,
+                newChatId = newChatId,
+            )
+        }
+    }
 }
 
 class FakeMessageRepository : MessageRepository {

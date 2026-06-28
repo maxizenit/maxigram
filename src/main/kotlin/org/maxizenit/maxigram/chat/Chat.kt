@@ -8,6 +8,11 @@ data class Chat(
     val firstParticipantId: UUID,
     val secondParticipantId: UUID,
     val createdAt: Instant,
+    val anonymous: Boolean = false,
+    val firstAgreed: Boolean = false,
+    val secondAgreed: Boolean = false,
+    val closed: Boolean = false,
+    val newChatId: Long? = null,
 )
 
 /** A chat enriched with the text of its most recent message, for chat lists. */
@@ -15,6 +20,7 @@ data class ChatView(
     val id: Long,
     val firstParticipantId: UUID,
     val secondParticipantId: UUID,
+    val anonymous: Boolean,
     val createdAt: Instant,
     val lastMessage: String?,
 )

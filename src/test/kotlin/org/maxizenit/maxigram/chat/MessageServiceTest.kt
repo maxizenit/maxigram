@@ -50,4 +50,13 @@ class MessageServiceTest {
 
         assertThat(asSeenByBob.single().read).isTrue()
     }
+
+    @Test
+    fun `cannot send in a closed chat`() {
+        val anonymous = chats.insertAnonymous(alice, bob, Instant.EPOCH)
+        chatService.closeAnonymousChat(anonymous.id, alice)
+
+        assertThatThrownBy { service.send(anonymous.id, alice, "hi") }
+            .isInstanceOf(InvalidChatException::class.java)
+    }
 }

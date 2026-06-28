@@ -1,7 +1,7 @@
 package org.maxizenit.maxigram.chat.ws
 
 import org.maxizenit.maxigram.chat.MessageSent
-import org.maxizenit.maxigram.chat.web.toResponse
+import org.maxizenit.maxigram.chat.web.toBroadcastResponse
 import org.springframework.context.event.EventListener
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Component
@@ -12,6 +12,9 @@ class RealtimeMessageBroadcaster(private val messagingTemplate: SimpMessagingTem
 
     @EventListener
     fun onMessageSent(event: MessageSent) {
-        messagingTemplate.convertAndSend("/topic/chats/${event.chatId}", event.message.toResponse())
+        messagingTemplate.convertAndSend(
+            "/topic/chats/${event.chatId}",
+            event.message.toBroadcastResponse(event.anonymous),
+        )
     }
 }

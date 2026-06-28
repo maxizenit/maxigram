@@ -24,9 +24,18 @@ class NotificationListenersTest {
     fun `a new message notifies the recipient`() {
         val message = Message(1, 10, actor, "hi", Instant.EPOCH, read = false)
 
-        listeners.onMessageSent(MessageSent(10, author, message))
+        listeners.onMessageSent(MessageSent(10, author, anonymous = false, message))
 
         verify(service).notify(author, NotificationType.NEW_MESSAGE, actor, "Новое сообщение")
+    }
+
+    @Test
+    fun `an anonymous message does not reveal the sender`() {
+        val message = Message(1, 10, actor, "hi", Instant.EPOCH, read = false)
+
+        listeners.onMessageSent(MessageSent(10, author, anonymous = true, message))
+
+        verify(service).notify(author, NotificationType.NEW_MESSAGE, null, "Новое сообщение")
     }
 
     @Test

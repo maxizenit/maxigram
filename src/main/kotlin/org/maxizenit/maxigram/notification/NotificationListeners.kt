@@ -13,7 +13,9 @@ class NotificationListeners(private val notifications: NotificationService) {
 
     @EventListener
     fun onMessageSent(event: MessageSent) {
-        notifications.notify(event.recipientId, NotificationType.NEW_MESSAGE, event.message.senderId, "Новое сообщение")
+        // Keep the sender hidden in anonymous chats.
+        val actor = if (event.anonymous) null else event.message.senderId
+        notifications.notify(event.recipientId, NotificationType.NEW_MESSAGE, actor, "Новое сообщение")
     }
 
     @EventListener
