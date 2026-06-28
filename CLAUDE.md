@@ -1,7 +1,7 @@
 # Конвенции проекта maxigram
 
 Гайд для работы над кодовой базой. Подробный план и история решений —
-[docs/plans/20260628-maxigram-v2.md](docs/plans/20260628-maxigram-v2.md).
+[docs/plans/completed/20260628-maxigram-v2.md](docs/plans/completed/20260628-maxigram-v2.md).
 
 ## Архитектура
 
