@@ -1,2 +1,8 @@
-# Local-profile overrides.
-# Datasource / Flyway / jOOQ settings are added in Task 0.2 (DB layer).
+# Local-profile overrides. Used for `bootRun` against a local PostgreSQL
+# (docker compose). Integration tests override the datasource via Testcontainers
+# @ServiceConnection, so these values are not used under test.
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/maxigram
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}

@@ -1,10 +1,9 @@
 package org.maxizenit.maxigram
 
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.context.SpringBootTest
+import org.maxizenit.maxigram.support.AbstractIntegrationTest
 
-@SpringBootTest
-class MaxigramApplicationTests {
+class MaxigramApplicationTests : AbstractIntegrationTest() {
 
     @Test
     fun contextLoads() {
