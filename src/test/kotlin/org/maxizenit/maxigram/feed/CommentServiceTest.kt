@@ -3,6 +3,7 @@ package org.maxizenit.maxigram.feed
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
@@ -12,7 +13,8 @@ class CommentServiceTest {
 
     private val comments = FakeCommentRepository()
     private val posts = FakePostRepository()
-    private val service = CommentService(comments, posts, Clock.fixed(Instant.EPOCH, ZoneOffset.UTC))
+    private val service =
+        CommentService(comments, posts, ApplicationEventPublisher { }, Clock.fixed(Instant.EPOCH, ZoneOffset.UTC))
 
     private val post = posts.insert(UUID.randomUUID(), "post", Instant.EPOCH)
 

@@ -16,6 +16,8 @@ class FakePostRepository : PostRepository {
 
     override fun existsById(id: Long): Boolean = posts.any { it.id == id }
 
+    override fun authorOf(id: Long): UUID? = posts.firstOrNull { it.id == id }?.authorId
+
     override fun viewById(id: Long, requesterId: UUID): PostView? =
         posts.firstOrNull { it.id == id }?.toView()
 
@@ -53,17 +55,13 @@ class FakeLikeRepository : LikeRepository {
     val postLikes = linkedSetOf<Pair<Long, UUID>>()
     val commentLikes = linkedSetOf<Pair<Long, UUID>>()
 
-    override fun likePost(postId: Long, userId: UUID) {
-        postLikes.add(postId to userId)
-    }
+    override fun likePost(postId: Long, userId: UUID): Boolean = postLikes.add(postId to userId)
 
     override fun unlikePost(postId: Long, userId: UUID) {
         postLikes.remove(postId to userId)
     }
 
-    override fun likeComment(commentId: Long, userId: UUID) {
-        commentLikes.add(commentId to userId)
-    }
+    override fun likeComment(commentId: Long, userId: UUID): Boolean = commentLikes.add(commentId to userId)
 
     override fun unlikeComment(commentId: Long, userId: UUID) {
         commentLikes.remove(commentId to userId)

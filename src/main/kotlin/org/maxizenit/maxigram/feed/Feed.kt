@@ -44,3 +44,9 @@ class PostNotFoundException(postId: Long) : RuntimeException("No post with id $p
 class CommentNotFoundException(commentId: Long) : RuntimeException("No comment with id $commentId")
 
 class InvalidContentException(message: String) : RuntimeException(message)
+
+/** Published when a post is newly liked (not republished for a duplicate like). */
+data class PostLiked(val postId: Long, val authorId: UUID, val likerId: UUID)
+
+/** Published when a comment is added to a post. */
+data class PostCommented(val postId: Long, val authorId: UUID, val commenterId: UUID)

@@ -3,6 +3,7 @@ package org.maxizenit.maxigram.feed
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.springframework.context.ApplicationEventPublisher
 import java.time.Instant
 import java.util.UUID
 
@@ -11,7 +12,7 @@ class LikeServiceTest {
     private val likes = FakeLikeRepository()
     private val posts = FakePostRepository()
     private val comments = FakeCommentRepository()
-    private val service = LikeService(likes, posts, comments)
+    private val service = LikeService(likes, posts, comments, ApplicationEventPublisher { })
 
     private val post = posts.insert(UUID.randomUUID(), "post", Instant.EPOCH)
     private val comment = comments.insert(post.id, UUID.randomUUID(), "comment", Instant.EPOCH)

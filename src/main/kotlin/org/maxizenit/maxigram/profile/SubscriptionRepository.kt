@@ -8,7 +8,8 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 interface SubscriptionRepository {
-    fun insertIfAbsent(subscriberId: UUID, authorId: UUID, createdAt: Instant)
+    /** Returns true if a new subscription was created, false if it already existed. */
+    fun insertIfAbsent(subscriberId: UUID, authorId: UUID, createdAt: Instant): Boolean
     fun delete(subscriberId: UUID, authorId: UUID)
     fun findAuthorIds(subscriberId: UUID): List<UUID>
 }
@@ -16,14 +17,13 @@ interface SubscriptionRepository {
 @Repository
 class JooqSubscriptionRepository(private val dsl: DSLContext) : SubscriptionRepository {
 
-    override fun insertIfAbsent(subscriberId: UUID, authorId: UUID, createdAt: Instant) {
+    override fun insertIfAbsent(subscriberId: UUID, authorId: UUID, createdAt: Instant): Boolean =
         dsl.insertInto(SUBSCRIPTION)
             .set(SUBSCRIPTION.SUBSCRIBER_ID, subscriberId)
             .set(SUBSCRIPTION.AUTHOR_ID, authorId)
             .set(SUBSCRIPTION.CREATED_AT, createdAt.atOffset(ZoneOffset.UTC))
             .onConflictDoNothing()
-            .execute()
-    }
+            .execute() > 0
 
     override fun delete(subscriberId: UUID, authorId: UUID) {
         dsl.deleteFrom(SUBSCRIPTION)

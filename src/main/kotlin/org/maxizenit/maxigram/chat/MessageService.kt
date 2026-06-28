@@ -16,11 +16,13 @@ class MessageService(
 ) {
 
     fun send(chatId: Long, senderId: UUID, text: String): Message {
-        chatService.requireParticipant(chatId, senderId)
+        val chat = chatService.requireParticipant(chatId, senderId)
         val trimmed = text.trim()
         if (trimmed.isEmpty()) throw InvalidChatException("Message text must not be blank")
         val message = messages.insert(chatId, senderId, trimmed, Instant.now(clock))
-        events.publishEvent(MessageSent(chatId, message))
+        val recipientId =
+            if (chat.firstParticipantId == senderId) chat.secondParticipantId else chat.firstParticipantId
+        events.publishEvent(MessageSent(chatId, recipientId, message))
         return message
     }
 

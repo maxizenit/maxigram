@@ -1,5 +1,6 @@
 package org.maxizenit.maxigram.feed
 
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import java.util.UUID
 
@@ -8,12 +9,15 @@ class LikeService(
     private val likes: LikeRepository,
     private val posts: PostRepository,
     private val comments: CommentRepository,
+    private val events: ApplicationEventPublisher,
 ) {
 
     /** Idempotent (onConflictDoNothing); v1 lost likes entirely due to JPA cascade mistakes. */
     fun likePost(postId: Long, userId: UUID) {
-        if (!posts.existsById(postId)) throw PostNotFoundException(postId)
-        likes.likePost(postId, userId)
+        val authorId = posts.authorOf(postId) ?: throw PostNotFoundException(postId)
+        if (likes.likePost(postId, userId)) {
+            events.publishEvent(PostLiked(postId, authorId, userId))
+        }
     }
 
     fun unlikePost(postId: Long, userId: UUID) = likes.unlikePost(postId, userId)

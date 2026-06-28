@@ -13,6 +13,7 @@ import java.util.UUID
 interface PostRepository {
     fun insert(authorId: UUID, text: String, createdAt: Instant): Post
     fun existsById(id: Long): Boolean
+    fun authorOf(id: Long): UUID?
     fun viewById(id: Long, requesterId: UUID): PostView?
     fun feedView(authorIds: Collection<UUID>, requesterId: UUID): List<PostView>
 }
@@ -33,6 +34,9 @@ class JooqPostRepository(private val dsl: DSLContext) : PostRepository {
     }
 
     override fun existsById(id: Long): Boolean = dsl.fetchExists(POST, POST.ID.eq(id))
+
+    override fun authorOf(id: Long): UUID? =
+        dsl.select(POST.AUTHOR_ID).from(POST).where(POST.ID.eq(id)).fetchOne(POST.AUTHOR_ID)
 
     override fun viewById(id: Long, requesterId: UUID): PostView? =
         viewQuery(requesterId).where(POST.ID.eq(id)).fetchOne { it.toPostView() }

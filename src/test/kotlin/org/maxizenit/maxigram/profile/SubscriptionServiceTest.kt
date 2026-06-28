@@ -3,6 +3,7 @@ package org.maxizenit.maxigram.profile
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
@@ -11,7 +12,8 @@ import java.util.UUID
 class SubscriptionServiceTest {
 
     private val repository = FakeSubscriptionRepository()
-    private val service = SubscriptionService(repository, Clock.fixed(Instant.EPOCH, ZoneOffset.UTC))
+    private val service =
+        SubscriptionService(repository, ApplicationEventPublisher { }, Clock.fixed(Instant.EPOCH, ZoneOffset.UTC))
 
     private val alice = UUID.randomUUID()
     private val bob = UUID.randomUUID()
@@ -48,9 +50,8 @@ class SubscriptionServiceTest {
     private class FakeSubscriptionRepository : SubscriptionRepository {
         private val edges = linkedSetOf<Pair<UUID, UUID>>()
 
-        override fun insertIfAbsent(subscriberId: UUID, authorId: UUID, createdAt: Instant) {
+        override fun insertIfAbsent(subscriberId: UUID, authorId: UUID, createdAt: Instant): Boolean =
             edges.add(subscriberId to authorId)
-        }
 
         override fun delete(subscriberId: UUID, authorId: UUID) {
             edges.remove(subscriberId to authorId)

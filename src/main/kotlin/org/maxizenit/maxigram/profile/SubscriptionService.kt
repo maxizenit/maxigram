@@ -1,5 +1,6 @@
 package org.maxizenit.maxigram.profile
 
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import java.time.Clock
 import java.time.Instant
@@ -8,6 +9,7 @@ import java.util.UUID
 @Service
 class SubscriptionService(
     private val subscriptions: SubscriptionRepository,
+    private val events: ApplicationEventPublisher,
     private val clock: Clock = Clock.systemUTC(),
 ) {
 
@@ -16,8 +18,10 @@ class SubscriptionService(
         if (subscriberId == authorId) {
             throw InvalidSubscriptionException("Cannot subscribe to yourself")
         }
-        // TODO(Etap 5): publish a "new subscriber" domain event for the notification module.
-        subscriptions.insertIfAbsent(subscriberId, authorId, Instant.now(clock))
+        val created = subscriptions.insertIfAbsent(subscriberId, authorId, Instant.now(clock))
+        if (created) {
+            events.publishEvent(SubscriptionCreated(subscriberId, authorId))
+        }
     }
 
     fun unsubscribe(subscriberId: UUID, authorId: UUID) {

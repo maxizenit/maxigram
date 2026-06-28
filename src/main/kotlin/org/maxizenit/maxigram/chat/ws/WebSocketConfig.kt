@@ -14,7 +14,8 @@ class WebSocketConfig(
 ) : WebSocketMessageBrokerConfigurer {
 
     override fun configureMessageBroker(registry: MessageBrokerRegistry) {
-        registry.enableSimpleBroker("/topic")
+        // /topic for chat broadcasts, /queue for per-user notifications (/user/queue/...).
+        registry.enableSimpleBroker("/topic", "/queue")
         registry.setApplicationDestinationPrefixes("/app")
     }
 
