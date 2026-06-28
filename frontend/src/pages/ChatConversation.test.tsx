@@ -35,6 +35,9 @@ const server = setupServer(
   http.post('http://localhost:8080/api/chats/1/messages', () =>
     HttpResponse.json({ id: 11, chatId: 1, senderId: 'me', text: 'ответ', createdAt: '', read: false }),
   ),
+  http.get('http://localhost:8080/api/profiles/bob', () =>
+    HttpResponse.json({ id: 'bob', firstName: 'Боб', lastName: 'Тестов', birthdate: '1990-01-01', timezone: 'UTC', interests: [] }),
+  ),
 )
 
 beforeAll(() => {
@@ -64,6 +67,13 @@ describe('ChatConversation', () => {
     await user.click(screen.getByText('Отправить'))
 
     expect(await screen.findByText('ответ')).toBeInTheDocument()
+  })
+
+  it('shows the partner name as a link to their profile in a regular chat', async () => {
+    renderAt('1')
+
+    const link = await screen.findByRole('link', { name: 'Боб Тестов' })
+    expect(link).toHaveAttribute('href', '/profiles/bob')
   })
 
   it('disables sending in a closed anonymous chat (fixes the v1 inverted button)', async () => {

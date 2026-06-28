@@ -9,6 +9,7 @@ import { ChatsPage } from './pages/ChatsPage'
 import { ChatConversation } from './pages/ChatConversation'
 import { NotificationsPage } from './pages/NotificationsPage'
 import { WellbeingPage } from './pages/WellbeingPage'
+import { UserProfilePage } from './pages/UserProfilePage'
 
 export function App() {
   return (
@@ -28,6 +29,7 @@ export function App() {
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/wellbeing" element={<WellbeingPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profiles/:id" element={<UserProfilePage />} />
       </Route>
     </Routes>
   )

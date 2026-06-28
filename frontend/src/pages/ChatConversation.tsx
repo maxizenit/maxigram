@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { chatsApi } from '../api/chats'
+import { profileApi } from '../api/profile'
 import type { Chat, Message } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { useStompSubscription } from '../realtime/RealtimeContext'
@@ -16,11 +17,24 @@ export function ChatConversation() {
   const myId = user?.profile.sub
 
   const [chat, setChat] = useState<Chat | null>(null)
+  const [partnerName, setPartnerName] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
 
   useEffect(() => {
-    chatsApi.get(chatId).then(setChat).catch(() => undefined)
+    chatsApi
+      .get(chatId)
+      .then((loaded) => {
+        setChat(loaded)
+        // In a regular chat the identity is known: resolve the partner's name for the header/messages.
+        if (!loaded.anonymous && loaded.partnerId) {
+          profileApi
+            .byId(loaded.partnerId)
+            .then((p) => setPartnerName(`${p.firstName} ${p.lastName}`))
+            .catch(() => undefined)
+        }
+      })
+      .catch(() => undefined)
     chatsApi.messages(chatId).then(setMessages).catch(() => undefined)
   }, [chatId])
 
@@ -42,9 +56,19 @@ export function ChatConversation() {
 
   if (!chat) return <p>Загрузка…</p>
 
+  const partnerLabel = chat.anonymous ? 'Собеседник' : partnerName ?? 'Собеседник'
+
   return (
     <section>
-      <h1>{chat.anonymous ? 'Анонимный чат' : `Чат с ${chat.partnerId}`}</h1>
+      <h1>
+        {chat.anonymous ? (
+          'Анонимный чат'
+        ) : (
+          <>
+            Чат с <Link to={`/profiles/${chat.partnerId}`}>{partnerName ?? chat.partnerId}</Link>
+          </>
+        )}
+      </h1>
 
       {chat.anonymous && (
         <div>
@@ -62,7 +86,7 @@ export function ChatConversation() {
       <ul>
         {messages.map((message) => (
           <li key={message.id}>
-            <strong>{message.senderId === myId ? 'Вы' : 'Собеседник'}:</strong> {message.text}
+            <strong>{message.senderId === myId ? 'Вы' : partnerLabel}:</strong> {message.text}
           </li>
         ))}
       </ul>
