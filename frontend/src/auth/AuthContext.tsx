@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { User } from 'oidc-client-ts'
 import { userManager } from './oidc'
 import { setTokenProvider, setUnauthorizedHandler } from '../api/client'
@@ -16,20 +16,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    setTokenProvider(() => (user && !user.expired ? user.access_token : null))
-  }, [user])
+  // The token provider reads through a ref updated in the same tick as the userLoaded
+  // event. Updating it in an effect would race: children's effects (first API calls after
+  // the OIDC callback navigates home) flush before the parent's, and the request would go
+  // out unauthenticated.
+  const userRef = useRef<User | null>(null)
+  const applyUser = (next: User | null) => {
+    userRef.current = next
+    setUser(next)
+  }
 
   useEffect(() => {
+    setTokenProvider(() => {
+      const current = userRef.current
+      return current && !current.expired ? current.access_token : null
+    })
     userManager.getUser().then((current) => {
-      setUser(current)
+      applyUser(current)
       setLoading(false)
     })
-    const onLoaded = (loaded: User) => setUser(loaded)
-    const onUnloaded = () => setUser(null)
+    const onLoaded = (loaded: User) => applyUser(loaded)
+    const onUnloaded = () => applyUser(null)
     // Fires only when the automatic silent renew failed to refresh in time:
     // drop the session so ProtectedRoute sends the user back to the login screen.
-    const onExpired = () => setUser(null)
+    const onExpired = () => applyUser(null)
     userManager.events.addUserLoaded(onLoaded)
     userManager.events.addUserUnloaded(onUnloaded)
     userManager.events.addAccessTokenExpired(onExpired)

@@ -53,6 +53,16 @@ describe('apiFetch', () => {
     expect(onUnauthorized).toHaveBeenCalledTimes(1)
   })
 
+  it('does not call the unauthorized handler on 401 when no token was attached', async () => {
+    setTokenProvider(() => null)
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('unauthorized', { status: 401 }))
+    const onUnauthorized = vi.fn()
+    setUnauthorizedHandler(onUnauthorized)
+
+    await expect(apiFetch('/api/test')).rejects.toBeInstanceOf(ApiError)
+    expect(onUnauthorized).not.toHaveBeenCalled()
+  })
+
   it('does not call the unauthorized handler for other errors', async () => {
     setTokenProvider(() => 'test-token')
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('boom', { status: 500 }))

@@ -34,7 +34,9 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
 
   const response = await fetch(`${BASE_URL}${path}`, { ...options, headers })
   if (!response.ok) {
-    if (response.status === 401) unauthorizedHandler?.()
+    // Only a rejected credential means the session is broken; a 401 without a token is
+    // just "not signed in" and must not trigger a re-login redirect.
+    if (response.status === 401 && token) unauthorizedHandler?.()
     const body = await response.text().catch(() => '')
     throw new ApiError(response.status, body || response.statusText)
   }
