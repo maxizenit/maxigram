@@ -60,7 +60,7 @@ class ChatServiceTest {
 
         assertThat(updated.firstAgreed).isTrue()
         assertThat(updated.secondAgreed).isFalse()
-        assertThat(updated.newChatId).isNull()
+        assertThat(updated.anonymous).isTrue()
     }
 
     @Test
@@ -71,32 +71,21 @@ class ChatServiceTest {
 
         assertThat(updated.secondAgreed).isTrue()
         assertThat(updated.firstAgreed).isFalse()
-        assertThat(updated.newChatId).isNull()
+        assertThat(updated.anonymous).isTrue()
     }
 
     @Test
-    fun `mutual consent creates a regular chat and links it`() {
+    fun `mutual consent converts the chat itself into a regular one`() {
         val chat = service.createAnonymousChat(alice, bob)
 
         service.agreeToDeAnonymization(chat.id, alice)
         val deAnonymized = service.agreeToDeAnonymization(chat.id, bob)
 
-        assertThat(deAnonymized.newChatId).isNotNull()
-        val regular = chats.chats.first { it.id == deAnonymized.newChatId }
-        assertThat(regular.anonymous).isFalse()
-        assertThat(setOf(regular.firstParticipantId, regular.secondParticipantId)).isEqualTo(setOf(alice, bob))
-    }
-
-    @Test
-    fun `agreeing again does not create a second regular chat`() {
-        val chat = service.createAnonymousChat(alice, bob)
-        service.agreeToDeAnonymization(chat.id, alice)
-        val first = service.agreeToDeAnonymization(chat.id, bob)
-
-        val again = service.agreeToDeAnonymization(chat.id, bob)
-
-        assertThat(again.newChatId).isEqualTo(first.newChatId)
-        assertThat(chats.chats.count { !it.anonymous }).isEqualTo(1)
+        assertThat(deAnonymized.id).isEqualTo(chat.id)
+        assertThat(deAnonymized.anonymous).isFalse()
+        // Converted in place: no extra chat is created.
+        assertThat(chats.chats).hasSize(1)
+        assertThat(chats.chats.single().anonymous).isFalse()
     }
 
     @Test

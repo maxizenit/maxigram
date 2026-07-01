@@ -17,7 +17,7 @@ interface ChatRepository {
     /** Finds an existing non-anonymous chat between the two participants, in either order. */
     fun findRegularBetween(a: UUID, b: UUID): Chat?
     fun chatViewsFor(userId: UUID): List<ChatView>
-    fun updateAnonymousState(chatId: Long, firstAgreed: Boolean, secondAgreed: Boolean, closed: Boolean, newChatId: Long?)
+    fun updateAnonymousState(chatId: Long, anonymous: Boolean, firstAgreed: Boolean, secondAgreed: Boolean, closed: Boolean)
 }
 
 @Repository
@@ -81,16 +81,16 @@ class JooqChatRepository(private val dsl: DSLContext) : ChatRepository {
 
     override fun updateAnonymousState(
         chatId: Long,
+        anonymous: Boolean,
         firstAgreed: Boolean,
         secondAgreed: Boolean,
         closed: Boolean,
-        newChatId: Long?,
     ) {
         dsl.update(CHAT)
+            .set(CHAT.ANONYMOUS, anonymous)
             .set(CHAT.FIRST_AGREED, firstAgreed)
             .set(CHAT.SECOND_AGREED, secondAgreed)
             .set(CHAT.CLOSED, closed)
-            .set(CHAT.NEW_CHAT_ID, newChatId)
             .where(CHAT.ID.eq(chatId))
             .execute()
     }
@@ -105,7 +105,6 @@ class JooqChatRepository(private val dsl: DSLContext) : ChatRepository {
             CHAT.FIRST_AGREED,
             CHAT.SECOND_AGREED,
             CHAT.CLOSED,
-            CHAT.NEW_CHAT_ID,
         ).from(CHAT)
 
     private fun Record.toChat() =
@@ -118,6 +117,5 @@ class JooqChatRepository(private val dsl: DSLContext) : ChatRepository {
             firstAgreed = this[CHAT.FIRST_AGREED],
             secondAgreed = this[CHAT.SECOND_AGREED],
             closed = this[CHAT.CLOSED],
-            newChatId = this[CHAT.NEW_CHAT_ID],
         )
 }

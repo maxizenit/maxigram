@@ -35,18 +35,18 @@ class FakeChatRepository : ChatRepository {
 
     override fun updateAnonymousState(
         chatId: Long,
+        anonymous: Boolean,
         firstAgreed: Boolean,
         secondAgreed: Boolean,
         closed: Boolean,
-        newChatId: Long?,
     ) {
         val index = chats.indexOfFirst { it.id == chatId }
         if (index >= 0) {
             chats[index] = chats[index].copy(
+                anonymous = anonymous,
                 firstAgreed = firstAgreed,
                 secondAgreed = secondAgreed,
                 closed = closed,
-                newChatId = newChatId,
             )
         }
     }

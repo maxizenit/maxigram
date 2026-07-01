@@ -23,7 +23,6 @@ const regularChat = {
   iAgreed: false,
   partnerAgreed: false,
   closed: false,
-  newChatId: null,
   createdAt: '',
 }
 
@@ -106,6 +105,28 @@ describe('ChatConversation', () => {
     await user.click(await screen.findByText('Согласиться на деанонимизацию'))
 
     expect(await screen.findByText('Согласие подано')).toBeInTheDocument()
+  })
+
+  it('converts the chat in place when both sides agree: header becomes the partner name', async () => {
+    server.use(
+      http.get('http://localhost:8080/api/chats/5', () =>
+        HttpResponse.json({ ...regularChat, id: 5, partnerId: null, anonymous: true, partnerAgreed: true }),
+      ),
+      http.get('http://localhost:8080/api/chats/5/messages', () => HttpResponse.json([])),
+      // The second consent flips the same chat to a regular one with the partner revealed.
+      http.post('http://localhost:8080/api/chats/5/agreement', () =>
+        HttpResponse.json({ ...regularChat, id: 5, partnerId: 'bob', anonymous: false, iAgreed: true, partnerAgreed: true }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderAt('5')
+
+    expect(await screen.findByText('Анонимный чат')).toBeInTheDocument()
+    await user.click(screen.getByText('Согласиться на деанонимизацию'))
+
+    const link = await screen.findByRole('link', { name: 'Боб Тестов' })
+    expect(link).toHaveAttribute('href', '/profiles/bob')
+    expect(screen.queryByText('Анонимный чат')).not.toBeInTheDocument()
   })
 
   it('keeps an own message as "Вы" even when the masked broadcast echoes it first (anonymous race)', async () => {

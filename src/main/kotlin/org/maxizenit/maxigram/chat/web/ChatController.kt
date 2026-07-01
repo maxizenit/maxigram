@@ -23,7 +23,6 @@ data class ChatResponse(
     val iAgreed: Boolean,
     val partnerAgreed: Boolean,
     val closed: Boolean,
-    val newChatId: Long?,
     val createdAt: Instant,
 )
 
@@ -45,7 +44,6 @@ private fun Chat.toResponse(requesterId: UUID): ChatResponse {
         iAgreed = if (requesterIsFirst) firstAgreed else secondAgreed,
         partnerAgreed = if (requesterIsFirst) secondAgreed else firstAgreed,
         closed = closed,
-        newChatId = newChatId,
         createdAt = createdAt,
     )
 }

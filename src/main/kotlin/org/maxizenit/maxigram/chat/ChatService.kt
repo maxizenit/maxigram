@@ -34,11 +34,12 @@ class ChatService(
     fun chatsOf(userId: UUID): List<ChatView> = chats.chatViewsFor(userId)
 
     /**
-     * Records [requesterId]'s consent to de-anonymization. When both participants have agreed, a
-     * regular chat between them is found-or-created and linked via [Chat.newChatId].
+     * Records [requesterId]'s consent to de-anonymization. Once both participants have agreed,
+     * the chat is converted to a regular one in place: identities are revealed but the thread
+     * (and its history) stays the same. Retroactively unmasking history is safe in a 1-on-1
+     * chat -- after the reveal, authorship is derivable anyway.
      *
-     * Fixes the v1 bug where the second participant's consent set the flag to `false` and
-     * `newChatId` was taken from the wrong field.
+     * Fixes the v1 bug where the second participant's consent reset the first one's flag.
      */
     @Transactional
     fun agreeToDeAnonymization(chatId: Long, requesterId: UUID): Chat {
@@ -49,14 +50,10 @@ class ChatService(
         val requesterIsFirst = chat.firstParticipantId == requesterId
         val firstAgreed = if (requesterIsFirst) true else chat.firstAgreed
         val secondAgreed = if (requesterIsFirst) chat.secondAgreed else true
+        val anonymous = !(firstAgreed && secondAgreed)
 
-        var newChatId = chat.newChatId
-        if (firstAgreed && secondAgreed && newChatId == null) {
-            newChatId = openChatWith(chat.firstParticipantId, chat.secondParticipantId).id
-        }
-
-        chats.updateAnonymousState(chatId, firstAgreed, secondAgreed, chat.closed, newChatId)
-        return chat.copy(firstAgreed = firstAgreed, secondAgreed = secondAgreed, newChatId = newChatId)
+        chats.updateAnonymousState(chatId, anonymous, firstAgreed, secondAgreed, chat.closed)
+        return chat.copy(anonymous = anonymous, firstAgreed = firstAgreed, secondAgreed = secondAgreed)
     }
 
     fun closeAnonymousChat(chatId: Long, requesterId: UUID): Chat {
@@ -64,7 +61,7 @@ class ChatService(
         if (!chat.anonymous) throw InvalidChatException("Chat is not anonymous")
         if (chat.closed) throw InvalidChatException("Chat is already closed")
 
-        chats.updateAnonymousState(chatId, chat.firstAgreed, chat.secondAgreed, closed = true, chat.newChatId)
+        chats.updateAnonymousState(chatId, chat.anonymous, chat.firstAgreed, chat.secondAgreed, closed = true)
         return chat.copy(closed = true)
     }
 }

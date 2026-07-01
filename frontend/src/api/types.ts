@@ -55,7 +55,6 @@ export interface Chat {
   iAgreed: boolean
   partnerAgreed: boolean
   closed: boolean
-  newChatId: number | null
   createdAt: string
 }
 

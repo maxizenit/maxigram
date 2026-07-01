@@ -12,7 +12,6 @@ data class Chat(
     val firstAgreed: Boolean = false,
     val secondAgreed: Boolean = false,
     val closed: Boolean = false,
-    val newChatId: Long? = null,
 )
 
 /** A chat enriched with the text of its most recent message, for chat lists. */

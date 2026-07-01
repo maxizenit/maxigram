@@ -1,8 +1,6 @@
 package org.maxizenit.maxigram.chat.web
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.notNullValue
 import org.hamcrest.Matchers.nullValue
 import org.jooq.DSLContext
 import org.junit.jupiter.api.Test
@@ -32,8 +30,6 @@ class AnonymousChatIT : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var chatService: ChatService
-
-    private val objectMapper = ObjectMapper()
 
     private fun createUser(): UUID {
         val id = UUID.randomUUID()
@@ -76,24 +72,30 @@ class AnonymousChatIT : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `mutual agreement de-anonymizes into a regular chat`() {
+    fun `mutual agreement converts the chat in place and unmasks the history`() {
         val alice = createUser()
         val bob = createUser()
         val chat = chatService.createAnonymousChat(alice, bob)
+        send(chat.id, alice, "from alice")
+        send(chat.id, bob, "from bob")
 
         mockMvc.perform(post("/api/chats/${chat.id}/agreement").with(jwt().jwt { it.subject(alice.toString()) }))
             .andExpect(jsonPath("$.iAgreed", equalTo(true)))
-            .andExpect(jsonPath("$.newChatId", nullValue()))
+            .andExpect(jsonPath("$.anonymous", equalTo(true)))
 
-        val body =
-            mockMvc.perform(post("/api/chats/${chat.id}/agreement").with(jwt().jwt { it.subject(bob.toString()) }))
-                .andExpect(jsonPath("$.newChatId", notNullValue()))
-                .andReturn().response.contentAsString
-        val newChatId = objectMapper.readTree(body).get("newChatId").asLong()
+        // The second consent converts the same chat: identities revealed, thread preserved.
+        mockMvc.perform(post("/api/chats/${chat.id}/agreement").with(jwt().jwt { it.subject(bob.toString()) }))
+            .andExpect(jsonPath("$.anonymous", equalTo(false)))
+            .andExpect(jsonPath("$.partnerId", equalTo(alice.toString())))
 
-        mockMvc.perform(get("/api/chats/$newChatId").with(jwt().jwt { it.subject(alice.toString()) }))
+        mockMvc.perform(get("/api/chats/${chat.id}").with(jwt().jwt { it.subject(alice.toString()) }))
             .andExpect(jsonPath("$.anonymous", equalTo(false)))
             .andExpect(jsonPath("$.partnerId", equalTo(bob.toString())))
+
+        // History is retroactively unmasked -- safe in a 1-on-1 chat once identities are known.
+        mockMvc.perform(get("/api/chats/${chat.id}/messages").with(jwt().jwt { it.subject(alice.toString()) }))
+            .andExpect(jsonPath("$[0].senderId", equalTo(alice.toString())))
+            .andExpect(jsonPath("$[1].senderId", equalTo(bob.toString())))
     }
 
     @Test
