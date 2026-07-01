@@ -14,6 +14,9 @@ const server = setupServer(
       { id: 2, partnerId: null, anonymous: true, lastMessage: null, createdAt: '' },
     ]),
   ),
+  http.get('http://localhost:8080/api/profiles/bob', () =>
+    HttpResponse.json({ id: 'bob', firstName: 'Боб', lastName: 'Тестов', birthdate: '1990-01-01', timezone: 'UTC', interests: [] }),
+  ),
 )
 
 beforeAll(() => {
@@ -32,10 +35,11 @@ function renderPage() {
 }
 
 describe('ChatsPage', () => {
-  it('lists chats, including anonymous ones', async () => {
+  it('lists chats with partner names resolved, anonymous ones masked', async () => {
     renderPage()
     expect(await screen.findByText(/Аноним/)).toBeInTheDocument()
-    expect(screen.getByText(/bob/)).toBeInTheDocument()
+    expect(await screen.findByText(/Боб Тестов/)).toBeInTheDocument()
+    expect(screen.queryByText(/bob —/)).not.toBeInTheDocument()
   })
 
   it('queues the user when no match is found', async () => {
