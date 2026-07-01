@@ -54,6 +54,7 @@ class StompAuthChannelInterceptor(
     }
 
     private companion object {
-        val CHAT_TOPIC = Regex("/topic/chats/(\\d+)")
+        /** Matches both the message topic and its /state sub-topic. */
+        val CHAT_TOPIC = Regex("/topic/chats/(\\d+)(?:/state)?")
     }
 }

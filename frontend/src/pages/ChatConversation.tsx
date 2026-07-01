@@ -43,6 +43,13 @@ export function ChatConversation() {
     setMessages((prev) => (prev.some((m) => m.id === incoming.id) ? prev : sortedById([...prev, incoming])))
   })
 
+  // State frames are empty triggers: refetch to get our own requester-relative view, so the
+  // partner's consent, the in-place conversion and closing are visible without a reload.
+  useStompSubscription<unknown>(`/topic/chats/${chatId}/state`, () => {
+    chatsApi.get(chatId).then(setChat).catch(() => undefined)
+    chatsApi.messages(chatId).then(setMessages).catch(() => undefined)
+  })
+
   async function send(event: FormEvent) {
     event.preventDefault()
     if (!text.trim()) return

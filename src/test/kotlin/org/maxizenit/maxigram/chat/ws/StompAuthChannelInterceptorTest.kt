@@ -27,7 +27,7 @@ class StompAuthChannelInterceptorTest {
 
     private val jwtDecoder = mock(JwtDecoder::class.java)
     private val chats = FakeChatRepository()
-    private val chatService = ChatService(chats, Clock.systemUTC())
+    private val chatService = ChatService(chats, {}, Clock.systemUTC())
     private val interceptor = StompAuthChannelInterceptor(jwtDecoder, chatService)
     private val channel = mock(MessageChannel::class.java)
 
@@ -83,6 +83,22 @@ class StompAuthChannelInterceptorTest {
         }
 
         assertThatThrownBy { interceptor.preSend(message, channel) }
+            .isInstanceOf(ChatAccessDeniedException::class.java)
+    }
+
+    @Test
+    fun `the state sub-topic is guarded the same way`() {
+        val allowed = frame(StompCommand.SUBSCRIBE) {
+            it.destination = "/topic/chats/${chat.id}/state"
+            it.user = JwtAuthenticationToken(jwtFor(alice))
+        }
+        assertThatCode { interceptor.preSend(allowed, channel) }.doesNotThrowAnyException()
+
+        val denied = frame(StompCommand.SUBSCRIBE) {
+            it.destination = "/topic/chats/${chat.id}/state"
+            it.user = JwtAuthenticationToken(jwtFor(stranger))
+        }
+        assertThatThrownBy { interceptor.preSend(denied, channel) }
             .isInstanceOf(ChatAccessDeniedException::class.java)
     }
 }

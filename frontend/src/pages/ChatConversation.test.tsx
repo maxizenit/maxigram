@@ -7,11 +7,11 @@ import { setupServer } from 'msw/node'
 import { ChatConversation } from './ChatConversation'
 import { setTokenProvider } from '../api/client'
 
-// Capture the subscription handler so a test can simulate an incoming STOMP frame.
-const realtime = vi.hoisted(() => ({ handler: null as null | ((message: unknown) => void) }))
+// Capture subscription handlers by destination so a test can simulate incoming STOMP frames.
+const realtime = vi.hoisted(() => ({ handlers: {} as Record<string, (message: unknown) => void> }))
 vi.mock('../realtime/RealtimeContext', () => ({
-  useStompSubscription: (_destination: string | null, handler: (message: unknown) => void) => {
-    realtime.handler = handler
+  useStompSubscription: (destination: string | null, handler: (message: unknown) => void) => {
+    if (destination) realtime.handlers[destination] = handler
   },
 }))
 vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ user: { profile: { sub: 'me' } } }) }))
@@ -145,7 +145,7 @@ describe('ChatConversation', () => {
 
     // Masked broadcast (senderId=null) lands first -> would show as "Собеседник".
     act(() =>
-      realtime.handler?.({ id: 50, chatId: 4, senderId: null, text: 'моё сообщение', createdAt: '', read: false }),
+      realtime.handlers['/topic/chats/4']?.({ id: 50, chatId: 4, senderId: null, text: 'моё сообщение', createdAt: '', read: false }),
     )
     expect(screen.getByText('Собеседник:')).toBeInTheDocument()
 

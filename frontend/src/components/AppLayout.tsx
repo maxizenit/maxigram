@@ -1,7 +1,18 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { NotificationsProvider, useNotifications } from '../notifications/NotificationsContext'
 
-export function AppLayout() {
+function NotificationsLink() {
+  const { unreadCount } = useNotifications()
+  return (
+    <NavLink to="/notifications">
+      Уведомления
+      {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
+    </NavLink>
+  )
+}
+
+function Shell() {
   const { logout } = useAuth()
   return (
     <div>
@@ -10,7 +21,7 @@ export function AppLayout() {
         <nav>
           <NavLink to="/">Лента</NavLink>
           <NavLink to="/chats">Чаты</NavLink>
-          <NavLink to="/notifications">Уведомления</NavLink>
+          <NotificationsLink />
           <NavLink to="/wellbeing">Самоограничение</NavLink>
           <NavLink to="/profile">Профиль</NavLink>
         </nav>
@@ -20,5 +31,13 @@ export function AppLayout() {
         <Outlet />
       </main>
     </div>
+  )
+}
+
+export function AppLayout() {
+  return (
+    <NotificationsProvider>
+      <Shell />
+    </NotificationsProvider>
   )
 }

@@ -14,7 +14,7 @@ class MessageServiceTest {
     private val chats = FakeChatRepository()
     private val messages = FakeMessageRepository()
     private val clock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
-    private val chatService = ChatService(chats, clock)
+    private val chatService = ChatService(chats, {}, clock)
     private val events = ApplicationEventPublisher { }
     private val service = MessageService(messages, chatService, events, clock)
 

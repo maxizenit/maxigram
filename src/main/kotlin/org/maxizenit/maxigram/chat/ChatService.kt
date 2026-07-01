@@ -1,5 +1,6 @@
 package org.maxizenit.maxigram.chat
 
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
@@ -9,6 +10,7 @@ import java.util.UUID
 @Service
 class ChatService(
     private val chats: ChatRepository,
+    private val events: ApplicationEventPublisher,
     private val clock: Clock = Clock.systemUTC(),
 ) {
 
@@ -53,6 +55,7 @@ class ChatService(
         val anonymous = !(firstAgreed && secondAgreed)
 
         chats.updateAnonymousState(chatId, anonymous, firstAgreed, secondAgreed, chat.closed)
+        events.publishEvent(ChatStateChanged(chatId))
         return chat.copy(anonymous = anonymous, firstAgreed = firstAgreed, secondAgreed = secondAgreed)
     }
 
@@ -62,6 +65,7 @@ class ChatService(
         if (chat.closed) throw InvalidChatException("Chat is already closed")
 
         chats.updateAnonymousState(chatId, chat.anonymous, chat.firstAgreed, chat.secondAgreed, closed = true)
+        events.publishEvent(ChatStateChanged(chatId))
         return chat.copy(closed = true)
     }
 }

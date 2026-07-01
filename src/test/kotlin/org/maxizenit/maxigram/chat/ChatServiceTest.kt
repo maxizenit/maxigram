@@ -11,7 +11,9 @@ import java.util.UUID
 class ChatServiceTest {
 
     private val chats = FakeChatRepository()
-    private val service = ChatService(chats, Clock.fixed(Instant.EPOCH, ZoneOffset.UTC))
+    private val publishedEvents = mutableListOf<Any>()
+    private val service =
+        ChatService(chats, { publishedEvents.add(it) }, Clock.fixed(Instant.EPOCH, ZoneOffset.UTC))
 
     private val alice = UUID.randomUUID()
     private val bob = UUID.randomUUID()
@@ -86,6 +88,16 @@ class ChatServiceTest {
         // Converted in place: no extra chat is created.
         assertThat(chats.chats).hasSize(1)
         assertThat(chats.chats.single().anonymous).isFalse()
+    }
+
+    @Test
+    fun `consent and close publish a state-changed event for live updates`() {
+        val chat = service.createAnonymousChat(alice, bob)
+
+        service.agreeToDeAnonymization(chat.id, alice)
+        service.closeAnonymousChat(chat.id, bob)
+
+        assertThat(publishedEvents).containsExactly(ChatStateChanged(chat.id), ChatStateChanged(chat.id))
     }
 
     @Test
