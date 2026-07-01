@@ -1,10 +1,10 @@
 package org.maxizenit.maxigram.identity
 
 import com.nimbusds.jose.jwk.JWKSet
-import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet
 import com.nimbusds.jose.jwk.source.JWKSource
 import com.nimbusds.jose.proc.SecurityContext
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
@@ -29,9 +29,7 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Toke
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher
-import java.security.KeyPairGenerator
-import java.security.interfaces.RSAPrivateKey
-import java.security.interfaces.RSAPublicKey
+import java.nio.file.Path
 import java.time.Duration
 import java.util.UUID
 
@@ -61,15 +59,17 @@ class AuthorizationServerConfig {
     }
 
     @Bean
-    fun registeredClientRepository(): RegisteredClientRepository {
+    fun registeredClientRepository(
+        @Value("\${maxigram.spa.base-url:http://localhost:5173}") spaBaseUrl: String,
+    ): RegisteredClientRepository {
         val spaClient =
             RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId("maxigram-spa")
                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .redirectUri("http://localhost:5173/callback")
-                .redirectUri("http://localhost:5173/silent-renew.html")
-                .postLogoutRedirectUri("http://localhost:5173/")
+                .redirectUri("$spaBaseUrl/callback")
+                .redirectUri("$spaBaseUrl/silent-renew.html")
+                .postLogoutRedirectUri("$spaBaseUrl/")
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)
                 .scope(OidcScopes.EMAIL)
@@ -100,14 +100,10 @@ class AuthorizationServerConfig {
             }
         }
 
+    /** Signing key is persisted when maxigram.jwk.path is set, so restarts keep tokens valid. */
     @Bean
-    fun jwkSource(): JWKSource<SecurityContext> {
-        val keyPair = KeyPairGenerator.getInstance("RSA").apply { initialize(2048) }.generateKeyPair()
-        val rsaKey =
-            RSAKey.Builder(keyPair.public as RSAPublicKey)
-                .privateKey(keyPair.private as RSAPrivateKey)
-                .keyID(UUID.randomUUID().toString())
-                .build()
+    fun jwkSource(@Value("\${maxigram.jwk.path:}") jwkPath: String): JWKSource<SecurityContext> {
+        val rsaKey = loadOrCreateRsaKey(jwkPath.ifBlank { null }?.let { Path.of(it) })
         return ImmutableJWKSet(JWKSet(rsaKey))
     }
 

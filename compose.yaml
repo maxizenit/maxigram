@@ -7,6 +7,8 @@ services:
       POSTGRES_DB: maxigram
     ports:
       - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U maxigram -d maxigram']
       interval: 5s
@@ -22,7 +24,16 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/maxigram
       SPRING_DATASOURCE_USERNAME: maxigram
       SPRING_DATASOURCE_PASSWORD: maxigram
-      # SPA origin allowed by CORS (defaults to http://localhost:5173 in code as well).
+      # SPA origin allowed by CORS and used for the OAuth client redirect uris.
       MAXIGRAM_CORS_ALLOWED_ORIGIN: http://localhost:5173
+      MAXIGRAM_SPA_BASE_URL: http://localhost:5173
+      # Signing key survives restarts, so issued tokens stay valid.
+      MAXIGRAM_JWK_PATH: /keys/jwk.json
+    volumes:
+      - keys:/keys
     ports:
       - '8080:8080'
+
+volumes:
+  pgdata:
+  keys:
