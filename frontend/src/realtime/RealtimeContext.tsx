@@ -18,12 +18,21 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const [state, setState] = useState<RealtimeState>({ client: null, connected: false })
 
+  // Silent renew replaces the user object every few minutes; keep the freshest token in a
+  // ref so reconnects use it without tearing down a healthy connection.
+  const tokenRef = useRef<string | null>(null)
+  tokenRef.current = user && !user.expired ? user.access_token : null
+
+  const userId = user && !user.expired ? (user.profile.sub as string) : null
+
   useEffect(() => {
-    if (!user || user.expired) return
+    if (!userId) return
     const client = new Client({
       brokerURL: wsUrl(),
-      connectHeaders: { Authorization: `Bearer ${user.access_token}` },
       reconnectDelay: 5000,
+      beforeConnect: () => {
+        client.connectHeaders = { Authorization: `Bearer ${tokenRef.current ?? ''}` }
+      },
       onConnect: () => setState((s) => ({ ...s, connected: true })),
       onDisconnect: () => setState((s) => ({ ...s, connected: false })),
       onWebSocketClose: () => setState((s) => ({ ...s, connected: false })),
@@ -34,7 +43,8 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       void client.deactivate()
       setState({ client: null, connected: false })
     }
-  }, [user])
+    // Recreate the client only when the signed-in identity changes, not on every token renew.
+  }, [userId])
 
   return <RealtimeContext.Provider value={state}>{children}</RealtimeContext.Provider>
 }

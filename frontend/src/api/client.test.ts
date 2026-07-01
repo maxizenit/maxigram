@@ -1,8 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { apiFetch, ApiError, setTokenProvider } from './client'
+import { apiFetch, ApiError, setTokenProvider, setUnauthorizedHandler } from './client'
 
 describe('apiFetch', () => {
-  afterEach(() => vi.restoreAllMocks())
+  afterEach(() => {
+    vi.restoreAllMocks()
+    setUnauthorizedHandler(null)
+  })
 
   it('attaches the bearer token when present', async () => {
     setTokenProvider(() => 'test-token')
@@ -38,5 +41,25 @@ describe('apiFetch', () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 204 }))
 
     await expect(apiFetch('/api/test')).resolves.toBeUndefined()
+  })
+
+  it('notifies the unauthorized handler on 401 (and still throws)', async () => {
+    setTokenProvider(() => 'stale-token')
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('unauthorized', { status: 401 }))
+    const onUnauthorized = vi.fn()
+    setUnauthorizedHandler(onUnauthorized)
+
+    await expect(apiFetch('/api/test')).rejects.toBeInstanceOf(ApiError)
+    expect(onUnauthorized).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not call the unauthorized handler for other errors', async () => {
+    setTokenProvider(() => 'test-token')
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('boom', { status: 500 }))
+    const onUnauthorized = vi.fn()
+    setUnauthorizedHandler(onUnauthorized)
+
+    await expect(apiFetch('/api/test')).rejects.toBeInstanceOf(ApiError)
+    expect(onUnauthorized).not.toHaveBeenCalled()
   })
 })

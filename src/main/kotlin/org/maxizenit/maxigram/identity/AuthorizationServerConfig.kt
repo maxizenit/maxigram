@@ -23,6 +23,7 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer
 import org.springframework.security.web.SecurityFilterChain
@@ -31,6 +32,7 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher
 import java.security.KeyPairGenerator
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
+import java.time.Duration
 import java.util.UUID
 
 @Configuration
@@ -65,8 +67,8 @@ class AuthorizationServerConfig {
                 .clientId("maxigram-spa")
                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("http://localhost:5173/callback")
+                .redirectUri("http://localhost:5173/silent-renew.html")
                 .postLogoutRedirectUri("http://localhost:5173/")
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)
@@ -75,6 +77,13 @@ class AuthorizationServerConfig {
                     ClientSettings.builder()
                         .requireProofKey(true)
                         .requireAuthorizationConsent(false)
+                        .build()
+                )
+                // Public clients get no refresh token (by SAS design, gh-297): the SPA renews
+                // silently via prompt=none against the live AS session instead.
+                .tokenSettings(
+                    TokenSettings.builder()
+                        .accessTokenTimeToLive(Duration.ofMinutes(10))
                         .build()
                 )
                 .build()

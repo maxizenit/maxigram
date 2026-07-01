@@ -9,6 +9,13 @@ export function setTokenProvider(provider: TokenProvider): void {
   tokenProvider = provider
 }
 
+let unauthorizedHandler: (() => void) | null = null
+
+/** Called once per 401 so the auth layer can force a re-login. */
+export function setUnauthorizedHandler(handler: (() => void) | null): void {
+  unauthorizedHandler = handler
+}
+
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -27,6 +34,7 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
 
   const response = await fetch(`${BASE_URL}${path}`, { ...options, headers })
   if (!response.ok) {
+    if (response.status === 401) unauthorizedHandler?.()
     const body = await response.text().catch(() => '')
     throw new ApiError(response.status, body || response.statusText)
   }
