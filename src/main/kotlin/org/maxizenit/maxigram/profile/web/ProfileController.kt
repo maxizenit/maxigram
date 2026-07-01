@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import java.util.UUID
@@ -62,4 +63,16 @@ class ProfileController(
     @GetMapping("/{userId}")
     fun byId(@PathVariable userId: UUID): ProfileResponse =
         service.find(userId)?.toResponse() ?: throw ProfileNotFoundException(userId)
+
+    /** List view: `query` searches by name, `ids` resolves a batch (for chat lists etc.). */
+    @GetMapping
+    fun list(
+        @RequestParam(required = false) query: String?,
+        @RequestParam(required = false) ids: List<UUID>?,
+    ): List<ProfileResponse> =
+        when {
+            !query.isNullOrBlank() -> service.search(query).map { it.toResponse() }
+            !ids.isNullOrEmpty() -> service.findAllByIds(ids).map { it.toResponse() }
+            else -> emptyList()
+        }
 }

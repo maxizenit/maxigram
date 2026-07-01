@@ -15,6 +15,9 @@ interface ProfileRepository {
     fun timezoneOf(userId: UUID): ZoneId?
     fun replaceInterests(userId: UUID, interestIds: List<Long>)
     fun findInterestsOf(userId: UUID): List<Interest>
+    /** Case-insensitive substring search over first and last names. */
+    fun searchByName(query: String, limit: Int): List<UserProfile>
+    fun findByIds(ids: Collection<UUID>): List<UserProfile>
 }
 
 @Repository
@@ -84,4 +87,45 @@ class JooqProfileRepository(private val dsl: DSLContext) : ProfileRepository {
             .where(USER_INTEREST.USER_ID.eq(userId))
             .orderBy(INTEREST.ID)
             .fetch { Interest(it.get(INTEREST.ID), it.get(INTEREST.NAME)) }
+
+    override fun searchByName(query: String, limit: Int): List<UserProfile> =
+        dsl.select(
+            USER_PROFILE.ID,
+            USER_PROFILE.FIRST_NAME,
+            USER_PROFILE.LAST_NAME,
+            USER_PROFILE.BIRTHDATE,
+            USER_PROFILE.TIMEZONE,
+        )
+            .from(USER_PROFILE)
+            .where(
+                USER_PROFILE.FIRST_NAME.containsIgnoreCase(query)
+                    .or(USER_PROFILE.LAST_NAME.containsIgnoreCase(query)),
+            )
+            .orderBy(USER_PROFILE.FIRST_NAME, USER_PROFILE.LAST_NAME)
+            .limit(limit)
+            .fetch { it.toProfile() }
+
+    override fun findByIds(ids: Collection<UUID>): List<UserProfile> =
+        if (ids.isEmpty()) emptyList()
+        else
+            dsl.select(
+                USER_PROFILE.ID,
+                USER_PROFILE.FIRST_NAME,
+                USER_PROFILE.LAST_NAME,
+                USER_PROFILE.BIRTHDATE,
+                USER_PROFILE.TIMEZONE,
+            )
+                .from(USER_PROFILE)
+                .where(USER_PROFILE.ID.`in`(ids))
+                .fetch { it.toProfile() }
+
+    private fun org.jooq.Record.toProfile() =
+        UserProfile(
+            id = this[USER_PROFILE.ID],
+            firstName = this[USER_PROFILE.FIRST_NAME],
+            lastName = this[USER_PROFILE.LAST_NAME],
+            birthdate = this[USER_PROFILE.BIRTHDATE],
+            timezone = ZoneId.of(this[USER_PROFILE.TIMEZONE]),
+            interests = emptyList(),
+        )
 }

@@ -57,4 +57,13 @@ class ProfileService(
     fun timezoneOf(userId: UUID): ZoneId? = profiles.timezoneOf(userId)
 
     fun listInterests(): List<Interest> = interests.findAll()
+
+    /** Name search for the people screen; interests are not loaded for list views. */
+    fun search(query: String): List<UserProfile> {
+        val trimmed = query.trim()
+        if (trimmed.isEmpty()) return emptyList()
+        return profiles.searchByName(trimmed, limit = 20)
+    }
+
+    fun findAllByIds(ids: Collection<UUID>): List<UserProfile> = profiles.findByIds(ids)
 }

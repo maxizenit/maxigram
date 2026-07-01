@@ -10,6 +10,7 @@ import { ChatConversation } from './pages/ChatConversation'
 import { NotificationsPage } from './pages/NotificationsPage'
 import { WellbeingPage } from './pages/WellbeingPage'
 import { UserProfilePage } from './pages/UserProfilePage'
+import { PeoplePage } from './pages/PeoplePage'
 
 export function App() {
   return (
@@ -28,6 +29,7 @@ export function App() {
         <Route path="/chats/:id" element={<ChatConversation />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/wellbeing" element={<WellbeingPage />} />
+        <Route path="/people" element={<PeoplePage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profiles/:id" element={<UserProfilePage />} />
       </Route>

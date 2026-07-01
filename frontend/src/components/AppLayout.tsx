@@ -20,6 +20,7 @@ function Shell() {
         <strong>maxigram</strong>
         <nav>
           <NavLink to="/">Лента</NavLink>
+          <NavLink to="/people">Люди</NavLink>
           <NavLink to="/chats">Чаты</NavLink>
           <NotificationsLink />
           <NavLink to="/wellbeing">Самоограничение</NavLink>

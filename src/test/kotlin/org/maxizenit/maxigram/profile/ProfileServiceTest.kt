@@ -79,6 +79,16 @@ class ProfileServiceTest {
 
         override fun findInterestsOf(userId: UUID): List<Interest> =
             (links[userId] ?: emptyList()).mapNotNull { catalogue[it] }
+
+        override fun searchByName(query: String, limit: Int): List<UserProfile> =
+            base.values
+                .filter {
+                    it.firstName.contains(query, ignoreCase = true) ||
+                        it.lastName.contains(query, ignoreCase = true)
+                }
+                .take(limit)
+
+        override fun findByIds(ids: Collection<UUID>): List<UserProfile> = ids.mapNotNull { base[it] }
     }
 
     private class FakeInterestRepository(private val all: List<Interest>) : InterestRepository {
