@@ -26,7 +26,7 @@ export function FeedPage() {
   return (
     <section>
       <h1>Лента</h1>
-      <form onSubmit={createPost}>
+      <form className="composer" onSubmit={createPost}>
         <textarea
           value={text}
           onChange={(event) => setText(event.target.value)}

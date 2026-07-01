@@ -71,7 +71,7 @@ export function ChatConversation() {
       </h1>
 
       {chat.anonymous && (
-        <div>
+        <div className="chat-controls">
           <button onClick={() => chatsApi.agree(chatId).then(setChat)} disabled={chat.iAgreed || chat.closed}>
             {chat.iAgreed ? 'Согласие подано' : 'Согласиться на деанонимизацию'}
           </button>
@@ -83,15 +83,15 @@ export function ChatConversation() {
         </div>
       )}
 
-      <ul>
+      <ul className="messages">
         {messages.map((message) => (
-          <li key={message.id}>
+          <li key={message.id} className={message.senderId === myId ? 'msg mine' : 'msg'}>
             <strong>{message.senderId === myId ? 'Вы' : partnerLabel}:</strong> {message.text}
           </li>
         ))}
       </ul>
 
-      <form onSubmit={send}>
+      <form className="chat-send" onSubmit={send}>
         <input
           value={text}
           onChange={(event) => setText(event.target.value)}

@@ -26,7 +26,7 @@ export function NotificationsPage() {
       {items.length === 0 ? (
         <p>Нет уведомлений.</p>
       ) : (
-        <ul>
+        <ul className="item-list">
           {items.map((notification) => (
             <li key={notification.id}>
               {notification.text}

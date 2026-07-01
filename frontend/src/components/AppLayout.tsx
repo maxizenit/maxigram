@@ -5,7 +5,7 @@ export function AppLayout() {
   const { logout } = useAuth()
   return (
     <div>
-      <header>
+      <header className="topbar">
         <strong>maxigram</strong>
         <nav>
           <NavLink to="/">Лента</NavLink>

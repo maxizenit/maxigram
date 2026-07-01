@@ -30,7 +30,7 @@ export function ChatsPage() {
       {chats.length === 0 ? (
         <p>Чатов пока нет.</p>
       ) : (
-        <ul>
+        <ul className="item-list">
           {chats.map((chat) => (
             <li key={chat.id}>
               <Link to={`/chats/${chat.id}`}>

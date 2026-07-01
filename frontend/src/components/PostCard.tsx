@@ -31,9 +31,9 @@ export function PostCard({ post: initial }: { post: Post }) {
   }
 
   return (
-    <article>
+    <article className="card">
       <p>{post.text}</p>
-      <div>
+      <div className="actions">
         <button onClick={toggleLike} aria-pressed={post.likedByMe} aria-label="Нравится">
           {post.likedByMe ? '♥' : '♡'} {post.likesCount}
         </button>
