@@ -16,6 +16,13 @@ export function setUnauthorizedHandler(handler: (() => void) | null): void {
   unauthorizedHandler = handler
 }
 
+let lockedHandler: (() => void) | null = null
+
+/** Called on 423 (active self-restraint) so the shell can explain the block. */
+export function setLockedHandler(handler: (() => void) | null): void {
+  lockedHandler = handler
+}
+
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -37,6 +44,7 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
     // Only a rejected credential means the session is broken; a 401 without a token is
     // just "not signed in" and must not trigger a re-login redirect.
     if (response.status === 401 && token) unauthorizedHandler?.()
+    if (response.status === 423) lockedHandler?.()
     const body = await response.text().catch(() => '')
     throw new ApiError(response.status, body || response.statusText)
   }

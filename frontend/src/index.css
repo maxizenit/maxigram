@@ -126,6 +126,13 @@ form {
   color: var(--danger);
 }
 
+.restraint-banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius);
+  padding: 0.7rem 1rem;
+}
+
 [role='status'] {
   color: var(--success);
 }

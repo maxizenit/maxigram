@@ -14,9 +14,15 @@ const server = setupServer(
       { id: 2, partnerId: null, anonymous: true, lastMessage: null, createdAt: '' },
     ]),
   ),
-  http.get('http://localhost:8080/api/profiles/bob', () =>
-    HttpResponse.json({ id: 'bob', firstName: 'Боб', lastName: 'Тестов', birthdate: '1990-01-01', timezone: 'UTC', interests: [] }),
-  ),
+  http.get('http://localhost:8080/api/profiles', ({ request }) => {
+    // The list resolves partner names in one batch request.
+    if (new URL(request.url).searchParams.get('ids') === 'bob') {
+      return HttpResponse.json([
+        { id: 'bob', firstName: 'Боб', lastName: 'Тестов', birthdate: '1990-01-01', timezone: 'UTC', interests: [] },
+      ])
+    }
+    return HttpResponse.json([])
+  }),
 )
 
 beforeAll(() => {

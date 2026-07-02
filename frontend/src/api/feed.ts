@@ -9,4 +9,6 @@ export const feedApi = {
   unlikePost: (id: number) => api.del<void>(`/api/posts/${id}/likes`),
   comments: (postId: number) => api.get<Comment[]>(`/api/posts/${postId}/comments`),
   addComment: (postId: number, text: string) => api.post<Comment>(`/api/posts/${postId}/comments`, { text }),
+  likeComment: (id: number) => api.post<void>(`/api/comments/${id}/likes`),
+  unlikeComment: (id: number) => api.del<void>(`/api/comments/${id}/likes`),
 }

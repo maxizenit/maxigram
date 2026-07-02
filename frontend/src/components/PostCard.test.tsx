@@ -28,6 +28,7 @@ const server = setupServer(
   http.post('http://localhost:8080/api/posts/1/comments', () =>
     HttpResponse.json({ id: 6, postId: 1, authorId: 'me', text: 'мой коммент', createdAt: '', likesCount: 0, likedByMe: false }),
   ),
+  http.post('http://localhost:8080/api/comments/5/likes', () => new HttpResponse(null, { status: 204 })),
 )
 
 beforeAll(() => {
@@ -62,5 +63,19 @@ describe('PostCard', () => {
     await user.click(screen.getByText('Отправить'))
 
     expect(await screen.findByText('мой коммент')).toBeInTheDocument()
+  })
+
+  it('toggles a like on a comment', async () => {
+    const user = userEvent.setup()
+    render(<PostCard post={post} />)
+
+    await user.click(screen.getByText(/💬/))
+    const likeButton = await screen.findByLabelText('Нравится комментарий 5')
+    expect(likeButton).toHaveTextContent('♡ 0')
+
+    await user.click(likeButton)
+
+    expect(likeButton).toHaveTextContent('♥ 1')
+    expect(likeButton).toHaveAttribute('aria-pressed', 'true')
   })
 })

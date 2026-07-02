@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { apiFetch, ApiError, setTokenProvider, setUnauthorizedHandler } from './client'
+import { apiFetch, ApiError, setLockedHandler, setTokenProvider, setUnauthorizedHandler } from './client'
 
 describe('apiFetch', () => {
   afterEach(() => {
     vi.restoreAllMocks()
     setUnauthorizedHandler(null)
+    setLockedHandler(null)
   })
 
   it('attaches the bearer token when present', async () => {
@@ -71,5 +72,15 @@ describe('apiFetch', () => {
 
     await expect(apiFetch('/api/test')).rejects.toBeInstanceOf(ApiError)
     expect(onUnauthorized).not.toHaveBeenCalled()
+  })
+
+  it('notifies the locked handler on 423 (active self-restraint)', async () => {
+    setTokenProvider(() => 'test-token')
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{"error":"locked"}', { status: 423 }))
+    const onLocked = vi.fn()
+    setLockedHandler(onLocked)
+
+    await expect(apiFetch('/api/test')).rejects.toBeInstanceOf(ApiError)
+    expect(onLocked).toHaveBeenCalledTimes(1)
   })
 })

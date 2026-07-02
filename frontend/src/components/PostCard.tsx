@@ -30,6 +30,22 @@ export function PostCard({ post: initial }: { post: Post }) {
     setPost({ ...post, commentsCount: post.commentsCount + 1 })
   }
 
+  async function toggleCommentLike(comment: Comment) {
+    if (comment.likedByMe) {
+      await feedApi.unlikeComment(comment.id)
+    } else {
+      await feedApi.likeComment(comment.id)
+    }
+    setComments(
+      (prev) =>
+        prev?.map((c) =>
+          c.id === comment.id
+            ? { ...c, likedByMe: !c.likedByMe, likesCount: c.likesCount + (c.likedByMe ? -1 : 1) }
+            : c,
+        ) ?? prev,
+    )
+  }
+
   return (
     <article className="card">
       <p>{post.text}</p>
@@ -43,7 +59,16 @@ export function PostCard({ post: initial }: { post: Post }) {
         <div>
           <ul>
             {comments.map((comment) => (
-              <li key={comment.id}>{comment.text}</li>
+              <li key={comment.id}>
+                {comment.text}{' '}
+                <button
+                  onClick={() => toggleCommentLike(comment)}
+                  aria-pressed={comment.likedByMe}
+                  aria-label={`Нравится комментарий ${comment.id}`}
+                >
+                  {comment.likedByMe ? '♥' : '♡'} {comment.likesCount}
+                </button>
+              </li>
             ))}
           </ul>
           <form onSubmit={submitComment}>

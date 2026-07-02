@@ -16,14 +16,14 @@ export function ChatsPage() {
       .list()
       .then((list) => {
         setChats(list)
-        // Resolve partner names for regular chats (anonymous ones stay masked).
+        // Resolve partner names for regular chats in one batch request (anonymous stay masked).
         const ids = [...new Set(list.map((chat) => chat.partnerId).filter((id): id is string => id !== null))]
-        ids.forEach((id) =>
-          profileApi
-            .byId(id)
-            .then((profile) => setNames((prev) => ({ ...prev, [id]: `${profile.firstName} ${profile.lastName}` })))
-            .catch(() => undefined),
-        )
+        profileApi
+          .byIds(ids)
+          .then((profiles) =>
+            setNames(Object.fromEntries(profiles.map((p) => [p.id, `${p.firstName} ${p.lastName}`]))),
+          )
+          .catch(() => undefined)
       })
       .catch(() => undefined)
   }, [])

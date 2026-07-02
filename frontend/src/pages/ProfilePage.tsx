@@ -8,7 +8,8 @@ export function ProfilePage() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [birthdate, setBirthdate] = useState('')
-  const [timezone, setTimezone] = useState('UTC')
+  // Default to the browser's IANA zone so a new profile rarely needs manual input.
+  const [timezone, setTimezone] = useState(() => Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC')
   const [interestIds, setInterestIds] = useState<number[]>([])
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
